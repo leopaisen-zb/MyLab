@@ -1,0 +1,3 @@
+model,role,params_m,param_reduction_vs_original,infer_samples_per_s,infer_speedup_vs_original,r2,mae,rmse,source
+Original Eqv2 / EquiformerV2,original baseline,38.82,1.00,3.13,1.00,0.8814,0.1320,0.2325,"/home/leo494/mylab/实验结果/实验结果摘要.csv; result/speed_benchmark/infer_speed_results.json"
+Eqv2-Lite,lightweight model,4.69,8.29,86.99,27.78,0.9334,0.0868,0.1798,"/home/leo494/mylab/实验结果/实验结果摘要.csv; result/speed_benchmark/infer_speed_results.json"

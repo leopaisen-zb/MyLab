@@ -1,0 +1,17 @@
+{
+  "lmax": 3,
+  "mae": 0.10414579317935543,
+  "rmse": 0.21052650321311114,
+  "r2": 0.9086948571461554,
+  "loss": 0.09816262734910616,
+  "num_parameters": 12994945,
+  "config": {
+    "lr": 0.0003,
+    "weight_decay": 0.0001,
+    "num_epochs": 50,
+    "batch_size": 16,
+    "target_mean": -0.2042156457901001,
+    "target_std": 0.6712170839309692,
+    "early_stopping_patience": 10
+  }
+}

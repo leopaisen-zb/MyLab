@@ -1,0 +1,98 @@
+trainer: energy_v2
+
+dataset:
+  train:
+    src: datasets/custom_hydrogen/train.lmdb
+    normalize_labels: True
+    target_mean: -0.2042156457901001  # 从实际数据计算得出
+    target_std: 0.6712170839309692   # 从实际数据计算得出
+  val:
+    src: datasets/custom_hydrogen/val.lmdb
+
+logger: wandb
+
+task:
+  dataset: custom_hydrogen
+  description: "Predicting hydrogen adsorption free energy (ΔGH) using atomic structures and features"
+  type: regression
+  metric: mae
+  labels:
+    - hydrogen_adsorption_energy
+  train_on_free_atoms: True
+  eval_on_free_atoms: True
+
+hide_eval_progressbar: False
+
+model:
+  name: equiformer_v2
+  
+  use_pbc: True
+  regress_forces: False  # 只预测能量，不预测力
+  otf_graph: True
+  max_neighbors: 50
+  max_radius: 12.0
+  max_num_elements: 90
+
+  num_layers: 8                    # 减少层数以避免过拟合
+  sphere_channels: 128
+  attn_hidden_channels: 64
+  num_heads: 8
+  attn_alpha_channels: 64
+  attn_value_channels: 16
+  ffn_hidden_channels: 256         # 增加FFN容量
+  norm_type: 'layer_norm_sh'
+
+  lmax_list: [4]                   # 降低到4以平衡性能和计算效率
+  mmax_list: [2]
+  grid_resolution: 18
+
+  num_sphere_samples: 128
+
+  edge_channels: 128
+  use_atom_edge_embedding: True
+  share_atom_edge_embedding: False
+  distance_function: 'gaussian'
+  num_distance_basis: 512
+
+  attn_activation: 'silu'
+  use_s2_act_attn: False
+  use_attn_renorm: True
+  ffn_activation: 'silu'
+  use_gate_act: False
+  use_grid_mlp: True               # 启用grid MLP
+  use_sep_s2_act: True
+
+  alpha_drop: 0.1
+  drop_path_rate: 0.1              # 增加dropout防止过拟合
+  proj_drop: 0.1
+
+  weight_init: 'normal'
+
+optim:
+  batch_size: 16                   # 根据GPU内存调整
+  eval_batch_size: 32
+  num_workers: 4
+  lr_initial: 0.0002               # 较小的学习率
+  lr_gamma: 0.1
+  lr_milestones:
+    - 30
+    - 60
+  warmup_steps: 1000
+  warmup_factor: 0.2
+  max_epochs: 100                  # 增加训练轮数
+  
+  energy_coefficient: 1            # 能量损失权重
+  clip_grad_norm: 10
+  ema_decay: 0.999
+  
+  loss_energy: mae                 # 使用MAE损失
+  
+  eval_every: 5                    # 每5个epoch评估一次
+  checkpoint_every: 10
+
+scheduler:
+  name: ReduceLROnPlateau
+  mode: min
+  factor: 0.8
+  patience: 10
+  min_lr: 0.00001 

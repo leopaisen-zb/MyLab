@@ -1,0 +1,2 @@
+num_layers,sphere_channels,num_heads,grid_resolution,edge_channels,seed,test_mae,test_rmse,test_loss,params
+2.0,64.0,4.0,12.0,64.0,2.0,0.1031621769070625,0.1993145644664764,0.0881322386602942,-1.0

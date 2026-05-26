@@ -1,0 +1,2 @@
+test_mae,test_rmse,align_mode,fusion,mc_T
+0.03391686235526228,0.05756876227491679,idx,concat,0

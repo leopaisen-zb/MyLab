@@ -1,0 +1,25 @@
+name: equiformer_v2_project
+channels:
+  - conda-forge
+  - pytorch
+  - pyg
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib
+  - seaborn
+  - scikit-learn
+  - tqdm
+  - jupyter
+  - ipython
+  - pip
+  - pip:
+    - torch==2.7.1+cu118
+    - torchvision==0.22.1+cu118
+    - torchaudio==2.7.1+cu118
+    - torch-geometric==2.6.1
+    - e3nn==0.5.7
+    - wandb
+    - tensorboard

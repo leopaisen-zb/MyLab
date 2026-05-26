@@ -1,0 +1,53 @@
+{
+  "data": {
+    "reactions": {
+      "edges": [
+        {
+          "node": {
+            "id": "UmVhY3Rpb246NjYz",
+            "chemicalComposition": "Ru",
+            "surfaceComposition": "Ru",
+            "facet": "1",
+            "reactionEnergy": -0.03
+          }
+        },
+        {
+          "node": {
+            "id": "UmVhY3Rpb246NjM5",
+            "chemicalComposition": "Mo",
+            "surfaceComposition": "Mo",
+            "facet": "100",
+            "reactionEnergy": -0.13
+          }
+        },
+        {
+          "node": {
+            "id": "UmVhY3Rpb246NjA1",
+            "chemicalComposition": "Mo",
+            "surfaceComposition": "Mo",
+            "facet": "110",
+            "reactionEnergy": -1.52
+          }
+        },
+        {
+          "node": {
+            "id": "UmVhY3Rpb246NjA3",
+            "chemicalComposition": "W",
+            "surfaceComposition": "W",
+            "facet": "100",
+            "reactionEnergy": -1.02
+          }
+        },
+        {
+          "node": {
+            "id": "UmVhY3Rpb246NjU1",
+            "chemicalComposition": "Cu",
+            "surfaceComposition": "Cu",
+            "facet": "111",
+            "reactionEnergy": -0.2
+          }
+        }
+      ]
+    }
+  }
+}

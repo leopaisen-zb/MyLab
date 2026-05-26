@@ -1,0 +1,4 @@
+=== REAL LLM GENERATION TEST ===
+Time: 17:14:47
+Base model: Qwen/Qwen2.5-7B-Instruct
+Loading model...

@@ -1,0 +1,7 @@
+parameter,correlation_mae,correlation_rmse,abs_correlation_mae
+num_layers,-0.7914016383618406,-0.7267612155061213,0.7914016383618406
+sphere_channels,,,
+num_heads,,,
+grid_resolution,,,
+edge_channels,,,
+params,,,

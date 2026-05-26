@@ -1,0 +1,5 @@
+num_layers,sphere_channels,num_heads,grid_resolution,edge_channels,eSCN,attn_renorm,sep_s2,sep_ln,data_ratio,pretrained
+2,64,4,8,64,False,False,False,False,1.0,False
+2,64,4,12,64,False,False,False,False,1.0,False
+3,64,4,8,64,False,False,False,False,1.0,False
+3,64,4,12,64,False,False,False,False,1.0,False

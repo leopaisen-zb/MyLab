@@ -1,0 +1,8 @@
+{
+  "lr": 0.0003,
+  "weight_decay": 0.0001,
+  "num_epochs": 100,
+  "batch_size": 6,
+  "target_mean": -0.2042156457901001,
+  "target_std": 0.6712170839309692
+}

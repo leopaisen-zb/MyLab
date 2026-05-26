@@ -1,0 +1,80 @@
+# === OS / Editor ===
+.DS_Store
+Thumbs.db
+desktop.ini
+*Zone.Identifier*
+*:Zone.Identifier*
+.vscode/
+.idea/
+*.swp
+*~
+
+# === Conda / venv envs ===
+.conda/
+.venv/
+env/
+venv/
+*/.conda-eqv2-cpu/
+*/.conda-eqv2-gpu/
+
+# === Model checkpoints & weights (HUGE) ===
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.safetensors
+*.bin
+# RAG model checkpoints (13GB)
+RAG/RAG/checkpoints/
+RAG/RAG/unsloth_compiled_cache/
+# Equiformer checkpoints
+equiformer/checkpionts/
+
+# === Large LMDB data files (>100MB, GitHub limit) ===
+# These are training databases - download from source or regenerate
+*.mdb
+*.lmdb/
+
+# === Compiled / cache ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.whl
+unsloth_compiled_cache/
+*/unsloth_compiled_cache/
+*/__pycache__/
+
+# === Logs & temp ===
+*.log
+logs/
+*.tmp
+*.temp
+benchmark_log.txt
+test_output.txt
+rag_test_output.txt
+
+# === DB files ===
+*.db
+*.sqlite
+*.sqlite3
+matgen_app/results.db
+
+# === Local settings with secrets/paths ===
+# (keep skill files but not machine-specific settings)
+.claude/settings.json
+.claude/settings.local.json
+
+# === Large PDFs (keep only if < 50MB, see docs/) ===
+# PDFs are excluded below; if you need small docs put them in docs/
+
+# === Archives ===
+*.zip
+*.tar
+*.tar.gz
+*.rar
+MS_1.zip
+
+# === Unrelated tools ===
+everything-claude-code-zh/

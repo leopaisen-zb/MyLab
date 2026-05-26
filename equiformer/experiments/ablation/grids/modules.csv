@@ -1,0 +1,6 @@
+num_layers,sphere_channels,num_heads,grid_resolution,edge_channels,eSCN,attn_renorm,sep_s2,sep_ln
+2,64,4,16,64,1,1,1,1
+2,64,4,16,64,1,0,1,1
+2,64,4,16,64,1,1,0,1
+2,64,4,16,64,1,1,1,0
+2,64,4,16,64,1,0,0,0

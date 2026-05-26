@@ -1,0 +1,2 @@
+test_mae,test_rmse,test_loss,align_mode,fusion,mc_T
+0.10066723191134987,0.1843283626690616,0.033976945284257105,idx,gate,0

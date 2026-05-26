@@ -1,0 +1,11 @@
+EquiformerV2 Model Evaluation Report
+================================
+
+R² Score: 0.9334
+Mean Absolute Error: 0.0869
+Root Mean Square Error: 0.1798
+
+Data Statistics:
+Number of samples: 1037
+Target range: [-1.8149, 1.9016]
+Prediction range: [-1.8170, 1.7481]

@@ -1,0 +1,38 @@
+{
+  "overall": [
+    {
+      "name": "eval_sandbox_A.json",
+      "n": 200,
+      "is_executable": 0.935,
+      "is_valid_structure": 0.45,
+      "is_composition_match": 0.0,
+      "volume_error_MAE": 521.3385465570639
+    },
+    {
+      "name": "eval_sandbox_FINAL_promptB.json",
+      "n": 200,
+      "is_executable": 0.525,
+      "is_valid_structure": 0.3,
+      "is_composition_match": 0.0,
+      "volume_error_MAE": 195.01422846038636
+    }
+  ],
+  "near_neighbor_subset": [
+    {
+      "name": "eval_sandbox_A.json (near-neighbor subset)",
+      "n": 88,
+      "is_executable": 0.9659090909090909,
+      "is_valid_structure": 0.5,
+      "is_composition_match": 0.0,
+      "volume_error_MAE": 566.5786587569255
+    },
+    {
+      "name": "eval_sandbox_FINAL_promptB.json (near-neighbor subset)",
+      "n": 88,
+      "is_executable": 0.5113636363636364,
+      "is_valid_structure": 0.32954545454545453,
+      "is_composition_match": 0.0,
+      "volume_error_MAE": 238.76041349663808
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "model_name": "EquiformerV2_Original_Best",
+    "num_parameters": 38820865,
+    "batch_size": 64,
+    "avg_time": 19.474960747887106,
+    "std_time": 17.46301721452905,
+    "avg_time_per_sample": 0.31926165160470665,
+    "samples_per_second": 3.132227108936179,
+    "total_samples": 1037,
+    "num_runs": 17
+  },
+  {
+    "model_name": "Eqv2-Lite_Best",
+    "num_parameters": 4685345,
+    "batch_size": 64,
+    "avg_time": 0.7012022663565243,
+    "std_time": 1.07493802526273,
+    "avg_time_per_sample": 0.011495119120598758,
+    "samples_per_second": 86.99344387028083,
+    "total_samples": 1037,
+    "num_runs": 17
+  }
+]

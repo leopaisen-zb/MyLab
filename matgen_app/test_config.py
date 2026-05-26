@@ -1,0 +1,7 @@
+import sys, os
+sys.path.insert(0, 'matgen_app')
+from config import DEFAULT_FILTER_LOW, DEFAULT_FILTER_HIGH, BASE_MODEL_PATH, NORM_STATS
+print(f'FILTER_LOW={DEFAULT_FILTER_LOW}, FILTER_HIGH={DEFAULT_FILTER_HIGH}')
+print(f'BASE_MODEL_PATH={BASE_MODEL_PATH}')
+print(f'NORM_STATS={NORM_STATS}')
+print(f'EXISTS NORM_STATS: {os.path.exists(NORM_STATS)}')

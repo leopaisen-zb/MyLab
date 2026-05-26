@@ -1,0 +1,25 @@
+{
+  "name": "ffn_light",
+  "seed": 42,
+  "num_parameters": 4537537,
+  "loss": 0.0791729892245852,
+  "mae": 0.10402662263084796,
+  "rmse": 0.18910352096366959,
+  "r2": 0.9263316544434709,
+  "config": {
+    "name": "ffn_light",
+    "num_layers": "3",
+    "sphere_channels": "128",
+    "num_heads": "4",
+    "attn_hidden_channels": "32",
+    "attn_alpha_channels": "16",
+    "attn_value_channels": "8",
+    "ffn_hidden_channels": "64",
+    "edge_channels": "128",
+    "num_gaussians": "256",
+    "lmax": "4",
+    "max_radius": "12.0",
+    "max_neighbors": "20",
+    "seed": "42"
+  }
+}

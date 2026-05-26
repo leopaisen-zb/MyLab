@@ -1,0 +1,62 @@
+[
+  {
+    "index": 0,
+    "generated": "Based on the provided properties and the closest reference structure, we can infer that the target structure is likely to be similar to Reference 1, as it has the closest ΔGH value to the target value of 0.842182 eV. The other references have significantly different ΔGH values.\n\nGiven the similarity between the target properties and Reference 1, we will use the structure from Reference 1 as a starting point for the target structure. Here is the VASP POSCAR format for the target structure:\n\n```\nCd In Cd In Cd In Cd  H\n1.0000000000000000\n6.5869  0.0000  0.0000\n3.2934  5.7044  0.0000\n0.0000  0.0000  25.3782\nCd  In  Cd  In  Cd  In  Cd  H\n1   1   3   1   3   1   2   1\nCartesian\n0.0000  0.0000  9.9999\n1.6467  2.8522  9.9999\n3.2934  0.0000  9.9999\n4.9402  2.8522  9.9999\n6.5869  3.8029  12.6891\n4.9402  0.9507  12.6891\n3.2934  3.8029  12.6891\n1.6467  0.9507  12.6891\n3.1915  1.9601  15.5140\n4.9398  4.7540  15.4486\n6.6869  1.9602  15.5132\n8.2",
+    "ground_truth": "Cd Tl Cd Tl Cd Tl Cd  H\n1.0000000000000000\n6.7330  0.0000  0.0000\n3.3665  5.8309  0.0000\n0.0000  0.0000  25.4974\nCd  Tl  Cd  Tl  Cd  Tl  Cd  H\n1   1   3   1   3   1   2   1\nCartesian\n0.0000  0.0000  9.9999\n1.6832  2.9154  9.9999\n3.3665  0.0000  9.9999\n5.0497  2.9154  9.9999\n6.7330  3.8873  12.7487\n5.0497  0.9718  12.7487\n3.3665  3.8873  12.7487\n1.6832  0.9718  12.7487\n3.2436  2.0144  15.5173\n5.0489  4.8596  15.5745\n6.8549  2.0149  15.5181\n8.4160  4.7182  15.5172\n5.0502  0.9698  16.1058",
+    "sanity": {
+      "total_lines": 23,
+      "has_lattice": false,
+      "has_coord_type": true,
+      "coord_lines": 11,
+      "parseable": false
+    }
+  },
+  {
+    "index": 1,
+    "generated": "Based on the given properties and the closest match to the target properties among the references, we can infer that the structure most closely matching the target properties is likely to be similar to Reference 1. The target properties are very close to those of Reference 1, which have a Target ΔGH of -0.262413 eV, very similar to the target ΔGH of -0.202559 eV.\n\nGiven this, we will generate the POSCAR file for a structure similar to Reference 1 but adjusted slightly to match the target properties more closely. Here's how you can create the POSCAR file for this hypothetical structure:\n\n```plaintext\nPOSCAR\n1.0000000000000000\n5.4011  0.0000  0.0000\n2.7005  4.6775  0.0000\n0.0000  0.0000  24.4100\nRh  Cu  Rh  Cu  Rh  Cu  Rh  H\n1   1   3   1   3   1   2   1\nCartesian\n0.0000  0.0000  9.9999\n1.3502  2.3387  9.9999\n2.7005  0.0000  9.9999\n4.0508  2.3387  9.9999\n5.4011  3.1183  12.2050\n4.0508  0.7795  12.2050\n2.7005  3.1183  12.2050\n1.3502  0.7795  12.2050\n2.7310  1.5183  14.4000\n4.0507  3.8618  14.4499\n5.3",
+    "ground_truth": "Rh Cu Rh Cu Rh Cu Rh  H\n1.0000000000000000\n5.4011  0.0000  0.0000\n2.7005  4.6775  0.0000\n0.0000  0.0000  24.4100\nRh  Cu  Rh  Cu  Rh  Cu  Rh  H\n1   1   3   1   3   1   2   1\nCartesian\n0.0000  0.0000  9.9999\n1.3502  2.3387  9.9999\n2.7005  0.0000  9.9999\n4.0508  2.3387  9.9999\n5.4011  3.1183  12.2050\n4.0508  0.7795  12.2050\n2.7005  3.1183  12.2050\n1.3502  0.7795  12.2050\n2.6816  1.5686  14.3976\n4.0266  3.8837  14.4333\n5.3806  1.5473  14.3526\n6.7499  3.8767  14.3978\n5.3738  4.6622  15.3140",
+    "sanity": {
+      "total_lines": 22,
+      "has_lattice": false,
+      "has_coord_type": true,
+      "coord_lines": 10,
+      "parseable": false
+    }
+  },
+  {
+    "index": 2,
+    "generated": "Based on the provided properties and the closest match to the target properties, we can infer that the structure most closely resembling the target is Reference 1. The properties of Reference 1 are very close to the target properties, especially for ΔGH, φ, Nd1, Np0, Out_e0, Out_e1, ψ1, First_IE0, CN, L_bond, and R0.\n\nGiven this, we can use the atomic structure of Reference 1 as a template for the VASP POSCAR format. Here is the POSCAR file for the hydrogen storage material based on the structure of Reference 1:\n\n```\nGa Cd Ga Cd Ga Cd H\n1.0000000000000000\n6.1903  0.0000  0.0000\n-3.0951  5.3609  0.0000\n0.0000  0.0000  25.0543\nGa  Cd  Ga  Cd  Ga  Cd  H\n3   1   3   1   3   1   1\nCartesian\n0.0000  0.0000  9.9999\n-1.5475  2.6804  9.9999\n1.5475  2.6804  9.9999\n3.0951  0.0000  9.9999\n3.0951  1.7869  12.5271\n1.5475  4.4674  12.5271\n-1.5475  4.4674  12.5271\n0.0000  1.7869  12.5271\n-0.0003  4.1899  14.9313\n1.4009  0.9302  15.0633\n4.7889  ",
+    "ground_truth": "Ga Hg Ga Hg Ga Hg  H\n1.0000000000000000\n6.2708  0.0000  0.0000\n-3.1354  5.4306  0.0000\n0.0000  0.0000  25.1200\nGa  Hg  Ga  Hg  Ga  Hg  H\n3   1   3   1   3   1   1\nCartesian\n0.0000  0.0000  9.9999\n-1.5677  2.7153  9.9999\n1.5677  2.7153  9.9999\n3.1354  0.0000  9.9999\n3.1354  1.8102  12.5600\n1.5677  4.5255  12.5600\n-1.5677  4.5255  12.5600\n0.0000  1.8102  12.5600\n0.0000  4.1951  15.3631\n1.5248  0.9790  15.0750\n4.7456  0.9795  15.0753\n3.1349  3.6311  15.2880\n-0.0001  3.2381  16.6622",
+    "sanity": {
+      "total_lines": 22,
+      "has_lattice": false,
+      "has_coord_type": true,
+      "coord_lines": 10,
+      "parseable": false
+    }
+  },
+  {
+    "index": 3,
+    "generated": "Based on the given properties and the closest match to the target properties, we can select Reference 1 as the closest match. The properties of Reference 1 are very close to the target properties, with only slight differences in some parameters such as Nd1 and Out_e1.\n\nHere is the VASP POSCAR format for the selected reference structure (Reference 1):\n\n```\nHg Cr Hg Cr Hg Cr Hg  H\n1.0000000000000000\n6.0968  0.0000  0.0000\n3.0484  5.2800  0.0000\n0.0000  0.0000  24.9780\nHg  Cr  Hg  Cr  Hg  Cr  Hg  H\n1   1   3   1   3   1   2   1\nCartesian\n0.0000  0.0000  9.9999\n1.5242  2.6400  9.9999\n3.0484  0.0000  9.9999\n4.5726  2.6400  9.9999\n6.0968  3.5200  12.4890\n4.5726  0.8800  12.4890\n3.0484  3.5200  12.4890\n1.5242  0.8800  12.4890\n3.0395  1.7602  15.2948\n4.5726  4.3998  14.6016\n6.1008  1.7684  15.2947\n7.6263  4.3921  15.2945\n4.57",
+    "ground_truth": "Hg Ta Hg Ta Hg Ta Hg  H\n1.0000000000000000\n6.1919  0.0000  0.0000\n3.0959  5.3624  0.0000\n0.0000  0.0000  25.0557\nHg  Ta  Hg  Ta  Hg  Ta  Hg  H\n1   1   3   1   3   1   2   1\nCartesian\n0.0000  0.0000  9.9999\n1.5479  2.6812  9.9999\n3.0959  0.0000  9.9999\n4.6439  2.6812  9.9999\n6.1919  3.5749  12.5278\n4.6439  0.8937  12.5278\n3.0959  3.5749  12.5278\n1.5479  0.8937  12.5278\n3.0952  1.7818  15.4209\n4.6441  4.4682  14.7387\n6.1873  1.7907  15.4213\n7.7454  4.4710  15.4224\n4.6451  0.8918  16.7282",
+    "sanity": {
+      "total_lines": 24,
+      "has_lattice": false,
+      "has_coord_type": true,
+      "coord_lines": 12,
+      "parseable": false
+    }
+  },
+  {
+    "index": 4,
+    "generated": "Based on the given properties and the closest match to the target properties among the references, we can select Reference 1 as the closest match. The properties of Reference 1 are very close to the target properties, especially considering the target ΔGH and other key parameters.\n\nHere is the VASP POSCAR format for the selected structure:\n\n```\nNi Tl Ni Tl Ni Tl H\n1.0000000000000000\n5.4005  0.0000  0.0000\n-2.7002  4.6770  0.0000\n0.0000  0.0000  24.4095\nNi  Tl  Ni  Tl  Ni  Tl  H\n3   1   3   1   3   1   1\nCartesian\n0.0000  0.0000  9.9999\n-1.3501  2.3385  9.9999\n1.3501  2.3385  9.9999\n2.7002  0.0000  9.9999\n2.7002  1.5590  12.2047\n1.3501  3.8975  12.2047\n-1.3501  3.8975  12.2047\n0.0000  1.5590  12.2047\n0.0000  3.2401  14.2296\n1.4560  0.7181  14.2296\n3.9448  0.7184  14.2304\n2.7005  3.1196  14.9594\n2.7003  3.1180  1",
+    "ground_truth": "Co Tl Co Tl Co Tl  H\n1.0000000000000000\n5.3363  0.0000  0.0000\n-2.6681  4.6214  0.0000\n0.0000  0.0000  24.3571\nCo  Tl  Co  Tl  Co  Tl  H\n3   1   3   1   3   1   1\nCartesian\n0.0000  0.0000  9.9999\n-1.3340  2.3107  9.9999\n1.3340  2.3107  9.9999\n2.6681  0.0000  9.9999\n2.6681  1.5404  12.1785\n1.3340  3.8511  12.1785\n-1.3340  3.8511  12.1785\n0.0000  1.5404  12.1785\n0.0010  3.2395  14.2119\n1.4728  0.6916  14.2113\n3.8646  0.6909  14.2108\n2.6683  3.0808  15.2157\n2.6677  3.0808  17.0156",
+    "sanity": {
+      "total_lines": 24,
+      "has_lattice": false,
+      "has_coord_type": true,
+      "coord_lines": 13,
+      "parseable": false
+    }
+  }
+]

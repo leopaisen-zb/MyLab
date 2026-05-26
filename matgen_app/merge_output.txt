@@ -1,0 +1,5 @@
+=== MERGING LoRA WITH BASE MODEL ===
+LoRA checkpoint: H:\BaiduNetdiskDownload\mylab(1)\mylab(1)\RAG\RAG\checkpoints\qwen_vasp_lora\checkpoint-3114
+Output path: H:\BaiduNetdiskDownload\mylab(1)\mylab(1)\models\qwen_vasp_merged
+
+Loading base model Qwen2.5-7B-Instruct...

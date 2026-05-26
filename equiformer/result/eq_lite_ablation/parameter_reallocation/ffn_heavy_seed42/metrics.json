@@ -1,0 +1,25 @@
+{
+  "name": "ffn_heavy",
+  "seed": 42,
+  "num_parameters": 5178177,
+  "loss": 0.08553526737512304,
+  "mae": 0.09910274506681271,
+  "rmse": 0.1965315037081206,
+  "r2": 0.9204306078525479,
+  "config": {
+    "name": "ffn_heavy",
+    "num_layers": "3",
+    "sphere_channels": "128",
+    "num_heads": "4",
+    "attn_hidden_channels": "32",
+    "attn_alpha_channels": "16",
+    "attn_value_channels": "8",
+    "ffn_hidden_channels": "192",
+    "edge_channels": "128",
+    "num_gaussians": "256",
+    "lmax": "4",
+    "max_radius": "12.0",
+    "max_neighbors": "20",
+    "seed": "42"
+  }
+}

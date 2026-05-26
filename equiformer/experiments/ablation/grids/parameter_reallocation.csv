@@ -1,0 +1,7 @@
+name,num_layers,sphere_channels,num_heads,attn_hidden_channels,attn_alpha_channels,attn_value_channels,ffn_hidden_channels,edge_channels,num_gaussians,lmax,max_radius,max_neighbors,seed
+ffn_heavy,3,128,4,32,16,8,192,128,256,4,12.0,20,42
+ffn_light,3,128,4,32,16,8,64,128,256,4,12.0,20,42
+attention_heavy,3,128,4,64,32,16,128,128,256,4,12.0,20,42
+edge_heavy,3,128,4,32,16,8,128,192,256,4,12.0,20,42
+radial_heavy,3,128,4,32,16,8,128,128,512,4,12.0,20,42
+balanced,3,128,4,48,24,12,128,160,256,4,12.0,20,42

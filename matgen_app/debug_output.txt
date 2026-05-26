@@ -1,0 +1,10 @@
+=== DEBUG TEST ===
+Transformers version: 4.44.0
+PyTorch version: 2.4.1+cpu
+CUDA available: False
+DirectML device: privateuseone:0
+
+Loading base model Qwen/Qwen2.5-7B-Instruct...
+Loading tokenizer from Qwen/Qwen2.5-7B-Instruct...
+Tokenizer loaded. EOS token: 151645
+Loading base model (this may take a while)...

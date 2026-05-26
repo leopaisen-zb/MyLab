@@ -1,0 +1,48 @@
+{
+  "total_structures": 10377,
+  "train_samples": 8301,
+  "val_samples": 1037,
+  "test_samples": 1039,
+  "feature_columns": [
+    "reactionEnergy",
+    "Nd0",
+    "Nd1",
+    "Nd",
+    "Np0",
+    "Np1",
+    "Np",
+    "Ns0",
+    "Ns1",
+    "Ns",
+    "Out_e0",
+    "Out_e1",
+    "Out_e",
+    "\u03c80",
+    "\u03c81",
+    "\u03c8",
+    "First_IE0",
+    "First_IE1",
+    "First_IE",
+    "CN",
+    "L_bond",
+    "R0",
+    "R1",
+    "R",
+    "\u0394GH"
+  ],
+  "target_column": "\u0394GH",
+  "max_radius": 12.0,
+  "max_neighbors": 50,
+  "atom_count_stats": {
+    "min": 5,
+    "max": 288,
+    "mean": 21.62551797243905,
+    "std": 16.67272732488382
+  },
+  "edge_count_stats": {
+    "min": 20,
+    "max": 14400,
+    "mean": 600.9292666473933,
+    "std": 927.8559336040836
+  }
+}

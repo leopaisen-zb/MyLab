@@ -1,0 +1,3 @@
+num_layers,sphere_channels,num_heads,grid_resolution,edge_channels,eSCN,attn_renorm,sep_s2,sep_ln,data_ratio,pretrained
+1,64,4,12,64,0,0,0,0,1.0,0
+4,64,4,12,64,0,0,0,0,1.0,0

@@ -1,0 +1,62 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>EquiformerV2 消融实验报告</title>
+        <meta charset="utf-8">
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            h1, h2 { color: #333; }
+            table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            .metric { background-color: #e7f3ff; }
+            .best { background-color: #d4edda; }
+        </style>
+    </head>
+    <body>
+        <h1>EquiformerV2 消融实验报告</h1>
+        
+        <h2>实验概览</h2>
+        <table>
+            <tr><th>指标</th><th>值</th></tr>
+            <tr><td>总实验数</td><td>8</td></tr>
+            <tr><td>有效实验数</td><td>8</td></tr>
+            <tr><td>成功率</td><td>100.0%</td></tr>
+        </table>
+        
+        <h2>性能统计</h2>
+        <table>
+            <tr><th>指标</th><th>均值</th><th>标准差</th><th>最小值</th><th>最大值</th></tr>
+            <tr class="metric"><td>MAE (eV)</td><td>0.122038</td><td>0.018277</td><td>0.103162</td><td>0.148919</td></tr>
+            <tr class="metric"><td>RMSE (eV)</td><td>0.227891</td><td>0.024854</td><td>0.199315</td><td>0.265132</td></tr>
+        </table>
+        
+        <h2>最佳配置</h2>
+        <table class="best">
+            <tr><th>参数</th><th>值</th></tr>
+    <tr><td>test_mae</td><td>0.1031621769070625</td></tr>
+<tr><td>test_rmse</td><td>0.1993145644664764</td></tr>
+<tr><td>num_layers</td><td>2.0</td></tr>
+<tr><td>sphere_channels</td><td>64.0</td></tr>
+<tr><td>num_heads</td><td>4.0</td></tr>
+<tr><td>grid_resolution</td><td>12.0</td></tr>
+
+        </table>
+        
+        <h2>参数重要性 (与MAE的相关性)</h2>
+        <table>
+            <tr><th>参数</th><th>与MAE相关性</th><th>与RMSE相关性</th></tr>
+    <tr><td>num_layers</td><td>-0.7914</td><td>-0.7268</td></tr>
+<tr><td>sphere_channels</td><td>nan</td><td>nan</td></tr>
+<tr><td>num_heads</td><td>nan</td><td>nan</td></tr>
+<tr><td>grid_resolution</td><td>nan</td><td>nan</td></tr>
+<tr><td>edge_channels</td><td>nan</td><td>nan</td></tr>
+<tr><td>params</td><td>nan</td><td>nan</td></tr>
+
+        </table>
+        
+        <p><em>报告生成时间: 2025-10-18 09:19:42</em></p>
+    </body>
+    </html>
+    

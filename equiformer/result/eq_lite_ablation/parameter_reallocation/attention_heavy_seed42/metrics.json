@@ -1,0 +1,25 @@
+{
+  "name": "attention_heavy",
+  "seed": 42,
+  "num_parameters": 7823873,
+  "loss": 0.08779569825587365,
+  "mae": 0.10152611155453585,
+  "rmse": 0.1991425079667498,
+  "r2": 0.9183023375124261,
+  "config": {
+    "name": "attention_heavy",
+    "num_layers": "3",
+    "sphere_channels": "128",
+    "num_heads": "4",
+    "attn_hidden_channels": "64",
+    "attn_alpha_channels": "32",
+    "attn_value_channels": "16",
+    "ffn_hidden_channels": "128",
+    "edge_channels": "128",
+    "num_gaussians": "256",
+    "lmax": "4",
+    "max_radius": "12.0",
+    "max_neighbors": "20",
+    "seed": "42"
+  }
+}

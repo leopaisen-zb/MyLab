@@ -1,0 +1,21 @@
+# Lightweight utility dependencies for documentation/result scripts.
+# Model training and full reproduction use:
+#   - env_equiformer_v2_project.yml
+#   - env/env_equiformer_v2.yml
+
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+seaborn
+tqdm
+pyyaml
+
+# Data-preparation helpers.
+ase
+lmdb
+
+# Optional Catalysis-Hub downloader utilities kept for non-Chapter-3 data work.
+requests>=2.28
+cathub>=2.0; python_version >= "3.9"

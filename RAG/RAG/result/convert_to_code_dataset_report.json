@@ -1,0 +1,16 @@
+{
+  "train": {
+    "input_count": 8301,
+    "output_count": 8301,
+    "dropped_count": 0
+  },
+  "test": {
+    "input_count": 2076,
+    "output_count": 2076,
+    "dropped_count": 0
+  },
+  "train_input": "D:\\mylab\\RAG\\RAG\\data\\rag_data\\text_rag\\dataset_train_rag.json",
+  "train_output": "D:\\mylab\\RAG\\RAG\\data\\rag_data\\text_rag\\dataset_train_rag_code.json",
+  "test_input": "D:\\mylab\\RAG\\RAG\\data\\rag_data\\text_rag\\dataset_test_rag.json",
+  "test_output": "D:\\mylab\\RAG\\RAG\\data\\rag_data\\text_rag\\dataset_test_rag_code.json"
+}

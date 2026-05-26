@@ -1,0 +1,7 @@
+{
+  "test_mae": 0.03391686235526228,
+  "test_rmse": 0.05756876227491679,
+  "align_mode": "idx",
+  "fusion": "concat",
+  "mc_T": 0
+}

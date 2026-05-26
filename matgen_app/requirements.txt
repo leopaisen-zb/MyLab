@@ -1,0 +1,10 @@
+# MatGen-Eq dependencies
+streamlit>=1.35.0
+pandas>=2.0.0
+torch>=2.0.0
+transformers>=4.40.0
+peft>=0.10.0
+ase>=3.22.0
+scipy>=1.11.0
+numpy>=1.24.0
+# unsloth  # optional, faster inference on GPU: pip install unsloth
