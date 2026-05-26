@@ -4,7 +4,7 @@ description: Eqv2-Lite轻量化模型消融实验结果，含单因素实验和�
 metadata:
   node_type: memory
   type: project
-  date: 2026-05-25
+  date: 2026-05-26
   originSessionId: f8223fbb-6c00-44dd-bce1-1075a23262bb
 ---
 
@@ -67,10 +67,14 @@ metadata:
 
 ### 最优单因素配置
 - lmax=4, layers=3, sphere_channels=128, edge_heavy, 256 gaussians
+- 参数量约 4.69M，MAE=0.0868 eV，R²=0.9334
 
 ---
 
-## 2. 交叉验证实验（lmax × radius，2026-05-25完成）
+## 2. 交叉验证实验（lmax × radius，第一版有缺陷，2026-05-25完成）
+
+**重要说明**：第一版交叉实验使用了 num_layers=6，与单因素实验的最优配置（num_layers=3）不一致，
+导致结果不可直接比较。该版本结果记录于此，但**不能**作为最终结论。
 
 存储位置：`equiformer/result/eq_lite_ablation/cross_lmax_radius/`
 
@@ -83,25 +87,32 @@ metadata:
 | 5 | 4 | 12.0 | 0.499 | 0.296 | 0.466 | 19.5M |
 | 6 | 4 | 16.0 | 0.591 | 0.279 | 0.421 | 19.5M |
 
-### 关键发现
-
-**存在显著交互效应**：
-- lmax=3时，radius越大性能越好（8.0→12.0→16.0）
-- lmax=4时，radius=8.0反而优于12.0/16.0
-- 最优组合：**lmax=3, radius=16.0**（R²=0.677）
-
-**单因素结论被部分修正**：
-- 单因素实验显示 lmax=4 最优，但交叉实验表明这仅在 radius=8.0 时成立
-- lmax=3 配合大半径（16.0）时反而更优
-- 说明不能单独优化每个参数，需要联合调优
-
-**设计建议**：
-- 论文中应报告交叉实验结果，而非仅单因素
-- 最终模型配置应基于交叉实验最优组合
+**注意**：此版本 R² 显著低于单因素最优（R²=0.933），原因：使用了 num_layers=6 而非最优的 3
 
 ---
 
-## 3. MatGen-Eq系统实验数据
+## 3. 交叉验证实验（lmax × radius，第二版修正，num_layers=3 固定）
+
+**脚本**：`equiformer/scripts/run_lmax_radius_cross_ablation_fixed.py`
+
+**配置**：
+- 固定参数：num_layers=3, sphere_channels=128, num_heads=4, ffn_hidden_channels=128,
+  edge_channels=128, num_gaussians=256, max_neighbors=20, batch_size=16, lr=0.0002
+- 变量：lmax=[3,4], max_radius=[8.0, 12.0, 16.0]
+- 总配置数：6
+- 数据：LMDB（equiformer/datasets/custom_hydrogen/）
+
+**训练参数（CPU版）**：
+- num_epochs: 30（原100，减少以适应CPU训练时间）
+- patience: 10（原20）
+
+**状态**：脚本已创建，等待 CPU 训练执行
+
+**预期结果**：验证 lmax 和 max_radius 之间是否存在显著交互效应
+
+---
+
+## 4. MatGen-Eq系统实验数据
 
 存储位置：`matgen_app/results.db`（SQLite）
 
@@ -122,12 +133,23 @@ metadata:
 
 ---
 
-## 4. 待补充实验
+## 5. GitHub 同步（2026-05-26）
 
-### 优先级2：100条批量性能基准（待MPS环境）
-- 需在有GPU/MPS环境时运行 `benchmark_batch.py`
-- 测量：总耗时、各阶段耗时（生成/解析/预测/筛选）、吞吐量
+仓库：https://github.com/leopaisen-zb/MyLab
 
-### 优先级3：三级解析防呆统计（已改代码）
-- 需新跑一批数据后才能有完整的 rejection_level 分布
-- 当前11条数据均为 pass（通过所有校验）
+**已上传**：
+- MS_1/：论文 LaTeX 源码
+- .memory/：记忆文档（8个）
+- .claude/skills/：academic-paper 等 skill
+- equiformer/：模型代码 + 消融结果
+- RAG/：检索系统代码
+- matgen_app/：Web 应用
+- mylab/, 实验结果/, 答辩材料/
+
+**已排除**：
+- .conda 环境（21GB）
+- RAG checkpoints（13GB）
+- LMDB .mdb 数据文件（>100MB）
+- everything-claude-code-zh/
+- Zone.Identifier 流文件
+- settings.json（包含本机路径）

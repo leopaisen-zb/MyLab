@@ -2,7 +2,12 @@
 - [Reviewer 2 Comments](reviewer2_comments.md) — 评阅人二11条意见（格式、引用、伪代码、用例图等），2026-05-11收到
 - [Writing Pitfalls](writing_pitfalls.md) — 论文写作踩坑总结：数据一致性、LaTeX排版、AI味清除、Word生成、评审应对（共17条）
 - [swjtuThesis V3.0 模板格式规范](swjtuthesis_template_v3.md) — 摘要环境、关键词格式、章节样式、行距字体
-- [Eqv2-Lite 消融实验结果](eqv2-lite-ablation-results.md) — 单因素实验(lmax/depth/channels/参数重分配/gaussians)和交叉验证(lmax×radius)结果，2026-05-25完成
+- [Eqv2-Lite 消融实验结果](eqv2-lite-ablation-results.md) — 单因素实验(lmax/depth/channels/参数重分配/gaussians)和交叉验证(lmax×radius)结果，2026-05-26更新
 - [MatGen-Eq 系统说明](matgen-system.md) — 系统架构、功能、数据流、资源路径
 - [论文大修TODO清单](thesis-revision-todo.md) — P0/P1/P2优先级任务、执行顺序、高风险表述清单
 - [答辩意见汇总](defense_comments.md) — 12条答辩意见（P0核心7条 + P1表述格式5条），2026-05-26
+
+## 项目信息
+
+- [GitHub 仓库](https://github.com/leopaisen-zb/MyLab) — 论文源码+代码+记忆文档，2026-05-26同步
+- 训练数据（LMDB）未上传，需在新设备上恢复
