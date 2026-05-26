@@ -128,13 +128,12 @@ def run_single_experiment(
 
     log_progress(f"  Starting: lmax={lmax}, radius={radius}")
 
-    # Use matgen conda environment's Python (has PyTorch CPU)
-    python_exe = "C:/ProgramData/miniconda3/Scripts/conda.exe"
+    # Use matgen conda environment's Python directly (has PyTorch CPU)
+    python_exe = "C:/ProgramData/miniconda3/envs/matgen/python.exe"
 
     # Build command - device auto-detected (falls back to CPU if no CUDA)
     cmd = [
         python_exe,
-        "run", "-n", "matgen", "python",
         str(TRAIN_SCRIPT),
         "--exp_name", exp_name,
         "--tag", exp_tag,
