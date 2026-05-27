@@ -8,3 +8,10 @@ ase>=3.22.0
 scipy>=1.11.0
 numpy>=1.24.0
 # unsloth  # optional, faster inference on GPU: pip install unsloth
+# === 四层架构新增依赖 ===
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+pydantic==2.6.1
+requests==2.31.0
+pymatgen==2024.3.10
+sqlalchemy==2.0.25

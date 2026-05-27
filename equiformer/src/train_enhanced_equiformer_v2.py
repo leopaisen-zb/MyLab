@@ -90,10 +90,10 @@ def train_epoch(model, dataloader, optimizer, device, stats, epoch, num_epochs):
         if (batch_idx + 1) % 10 == 0:
             print("  Epoch {}/{} | Batch {}/{} | Loss: {:.4f} | Avg Loss: {:.4f}".format(
                 epoch+1, num_epochs, batch_idx+1, len(dataloader), batch_loss, avg_loss
-            ))
-    
+            ), flush=True)
+
     epoch_loss = total_loss / num_batches
-    print("Epoch {}/{} completed | Avg Loss: {:.4f}".format(epoch+1, num_epochs, epoch_loss))
+    print("Epoch {}/{} completed | Avg Loss: {:.4f}".format(epoch+1, num_epochs, epoch_loss), flush=True)
     return epoch_loss
 
 def validate(model, dataloader, device, stats):
@@ -400,6 +400,8 @@ def main():
     ap.add_argument('--num_epochs', type=int, default=100)  # 训练轮数
     ap.add_argument('--seed', type=int, default=42)
     ap.add_argument('--experiment_tag', type=str, default='')
+    ap.add_argument('--checkpoint_dir', type=str, default='')  # 自定义checkpoint目录（每个实验配置独立）
+    ap.add_argument('--resume', action='store_true')  # 从checkpoint恢复训练
     args = ap.parse_args()
 
     def str2bool(x: str) -> bool:
@@ -440,8 +442,11 @@ def main():
     test_path = data_dir / "test.lmdb"
     stats_path = data_dir / "normalization_stats.json"
     
-    # 创建checkpoints目录
-    checkpoints_dir = project_root / "checkpionts"
+    # 创建checkpoints目录（每个实验配置独立目录）
+    if args.checkpoint_dir:
+        checkpoints_dir = Path(args.checkpoint_dir)
+    else:
+        checkpoints_dir = project_root / "checkpionts"
     os.makedirs(checkpoints_dir, exist_ok=True)
     
     # 创建实验目录 - ablation/<k=v__...>/seed=<seed>/
@@ -535,8 +540,8 @@ def main():
     optimizer = Adam(model.parameters(), lr=float(args.lr), weight_decay=float(args.weight_decay))
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
     
-    # 训练参数 - 完整训练
-    num_epochs = 100
+    # 训练参数 - 使用命令行指定的epoch数
+    num_epochs = int(args.num_epochs)
     best_val_loss = float('inf')
     best_model_path = checkpoints_dir / "best_enhanced_equiformer_v2.pt"
     
@@ -549,6 +554,26 @@ def main():
         'lr': []
     }
     
+    # ========== RESUME FROM CHECKPOINT ==========
+    start_epoch = 0
+    if args.resume and args.checkpoint_dir:
+        checkpoint_path = checkpoints_dir / "best_enhanced_equiformer_v2.pt"
+        if checkpoint_path.exists():
+            print(f"\n[RESUME] Found checkpoint: {checkpoint_path}")
+            checkpoint = torch.load(checkpoint_path, map_location=device)
+            model.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            start_epoch = checkpoint['epoch'] + 1
+            best_val_loss = checkpoint.get('val_loss', float('inf'))
+            if 'history' in checkpoint:
+                history = checkpoint['history']
+            print(f"[RESUME] Resuming from epoch {start_epoch}, best val_loss: {best_val_loss:.6f}")
+            cfg = checkpoint.get('config', {})
+            print(f"[RESUME] Model config: lmax={cfg.get('lmax_list','N/A')}, num_layers={cfg.get('num_layers','N/A')}")
+        else:
+            print(f"\n[RESUME] --resume set but no checkpoint found at {checkpoint_path}, starting from scratch")
+    # ===========================================
+
     # 训练循环
     print("\n" + "="*80)
     print("开始训练增强版EquiformerV2模型...")
@@ -557,9 +582,11 @@ def main():
     print("  - 训练轮数: {}".format(num_epochs))
     print("  - 学习率: {}".format(optimizer.param_groups[0]['lr']))
     print("  - 设备: {}".format(device))
+    if start_epoch > 0:
+        print("  - 起始轮次: {} (from checkpoint)".format(start_epoch))
     print("="*80 + "\n")
-    
-    for epoch in range(num_epochs):
+
+    for epoch in range(start_epoch, num_epochs):
         print("\n" + "-"*50)
         print("开始第 {}/{} 轮训练".format(epoch+1, num_epochs))
         print("-"*50)
@@ -630,6 +657,7 @@ def main():
                 'val_mae': float(val_mae),
                 'val_rmse': float(val_rmse),
                 'config': config,
+                'history': history,
             }, best_model_path)
             print("保存最佳模型，验证损失: {:.6f}".format(val_loss))
         

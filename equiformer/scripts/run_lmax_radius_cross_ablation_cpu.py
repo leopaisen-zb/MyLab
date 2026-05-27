@@ -83,9 +83,8 @@ FIXED_PARAMS = {
     "max_neighbors": 20,
     "batch_size": 16,          # LMDB is memory-mapped, batch size doesn't slow CPU loader
     "lr": 0.0002,
-    "num_epochs": 30,          # CPU-OPTIMIZED: reduced from 100
+    "num_epochs": 20,
     "seed": 42,
-    "patience": 10,            # CPU-OPTIMIZED: reduced from 20
 }
 
 # Variable parameters to test
@@ -117,7 +116,8 @@ def check_device() -> str:
 def run_single_experiment(
     lmax: int,
     radius: float,
-    exp_tag: str
+    exp_tag: str,
+    resume: bool = False
 ) -> Dict:
     """
     Run a single experiment configuration on CPU.
@@ -130,6 +130,9 @@ def run_single_experiment(
 
     # Use matgen conda environment's Python directly (has PyTorch CPU)
     python_exe = "C:/ProgramData/miniconda3/envs/matgen/python.exe"
+
+    # Per-config checkpoint directory
+    checkpoint_dir = RESULTS_DIR / config_name / "checkpoints"
 
     # Build command - device auto-detected (falls back to CPU if no CUDA)
     cmd = [
@@ -152,25 +155,40 @@ def run_single_experiment(
         "--lr", str(FIXED_PARAMS["lr"]),
         "--num_epochs", str(FIXED_PARAMS["num_epochs"]),
         "--seed", str(FIXED_PARAMS["seed"]),
+        "--checkpoint_dir", str(checkpoint_dir),
     ]
+
+    if resume:
+        cmd.append("--resume")
 
     start_time = time.time()
 
-    # Run training
+    # Run training with real-time output streaming
     try:
-        result = subprocess.run(
+        process = subprocess.Popen(
             cmd,
             cwd=str(BASE_DIR),
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
-            # No timeout - let it run to completion
+            bufsize=1,
         )
 
-        elapsed = time.time() - start_time
+        # Stream output in real-time
+        output_lines = []
+        if process.stdout:
+            for line in process.stdout:
+                print(line, end='', flush=True)
+                output_lines.append(line)
 
-        if result.returncode != 0:
-            log_error(f"  Failed with return code {result.returncode}")
-            log_error(f"  stderr: {result.stderr[-500:]}")
+        process.wait()
+        returncode = process.returncode
+
+        elapsed = time.time() - start_time
+        output = ''.join(output_lines)
+
+        if returncode != 0:
+            log_error(f"  Failed with return code {returncode}")
             return {
                 "lmax": lmax,
                 "radius": radius,
@@ -181,13 +199,10 @@ def run_single_experiment(
                 "params": None,
                 "time": elapsed,
                 "status": "failed",
-                "error": result.stderr[-500:]
+                "error": output[-500:]
             }
 
         # Parse output for metrics
-        output = result.stdout + result.stderr
-
-        # Try to find metrics in output
         mae, rmse, r2, loss, params = parse_metrics(output)
 
         if mae is not None:
@@ -207,19 +222,6 @@ def run_single_experiment(
             "status": "success" if mae is not None else "parse_failed"
         }
 
-    except subprocess.TimeoutExpired:
-        log_error(f"  Timeout - process took too long")
-        return {
-            "lmax": lmax,
-            "radius": radius,
-            "mae": None,
-            "rmse": None,
-            "r2": None,
-            "loss": None,
-            "params": None,
-            "time": time.time() - start_time,
-            "status": "timeout"
-        }
     except Exception as e:
         log_error(f"  Exception: {str(e)}")
         return {
@@ -383,7 +385,7 @@ def main():
     else:
         log_progress(f"CPU mode selected")
 
-    log(f"Device: {device}, Epochs: {FIXED_PARAMS['num_epochs']}, Patience: {FIXED_PARAMS['patience']}")
+    log(f"Device: {device}, Epochs: {FIXED_PARAMS['num_epochs']}")
 
     # Check training script exists
     if not TRAIN_SCRIPT.exists():
@@ -414,9 +416,17 @@ def main():
 
     for lmax, radius in configs:
         completed += 1
-        log_progress(f"\n[{completed}/{total}] Running: lmax={lmax}, radius={radius}")
+        config_name = get_config_name(lmax, radius)
+        checkpoint_dir = RESULTS_DIR / config_name / "checkpoints"
+        checkpoint_path = checkpoint_dir / "best_enhanced_equiformer_v2.pt"
+        resume = checkpoint_path.exists()
 
-        result = run_single_experiment(lmax, radius, exp_tag)
+        if resume:
+            log_progress(f"\n[{completed}/{total}] Resuming: lmax={lmax}, radius={radius}")
+        else:
+            log_progress(f"\n[{completed}/{total}] Running: lmax={lmax}, radius={radius}")
+
+        result = run_single_experiment(lmax, radius, exp_tag, resume=resume)
         results.append(result)
 
         print_progress_table(results, total, completed)
