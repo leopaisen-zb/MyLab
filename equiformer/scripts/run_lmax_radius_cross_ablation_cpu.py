@@ -136,7 +136,6 @@ def run_single_experiment(
         python_exe,
         str(TRAIN_SCRIPT),
         "--exp_name", exp_name,
-        "--tag", exp_tag,
         "--num_layers", str(FIXED_PARAMS["num_layers"]),
         "--sphere_channels", str(FIXED_PARAMS["sphere_channels"]),
         "--num_heads", str(FIXED_PARAMS["num_heads"]),
@@ -149,12 +148,10 @@ def run_single_experiment(
         "--cutoff", str(radius),
         "--max_neighbors", str(FIXED_PARAMS["max_neighbors"]),
         "--edge_channels", str(FIXED_PARAMS["edge_channels"]),
-        "--num_gaussians", str(FIXED_PARAMS["num_gaussians"]),
         "--batch_size", str(FIXED_PARAMS["batch_size"]),
         "--lr", str(FIXED_PARAMS["lr"]),
         "--num_epochs", str(FIXED_PARAMS["num_epochs"]),
         "--seed", str(FIXED_PARAMS["seed"]),
-        "--patience", str(FIXED_PARAMS["patience"]),
     ]
 
     start_time = time.time()
@@ -166,7 +163,7 @@ def run_single_experiment(
             cwd=str(BASE_DIR),
             capture_output=True,
             text=True,
-            timeout=7200  # 2 hour timeout per config (generous for CPU)
+            # No timeout - let it run to completion
         )
 
         elapsed = time.time() - start_time
@@ -211,7 +208,7 @@ def run_single_experiment(
         }
 
     except subprocess.TimeoutExpired:
-        log_error(f"  Timeout after 2 hours")
+        log_error(f"  Timeout - process took too long")
         return {
             "lmax": lmax,
             "radius": radius,
