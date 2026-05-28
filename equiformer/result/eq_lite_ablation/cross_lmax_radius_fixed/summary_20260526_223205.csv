@@ -1,0 +1,7 @@
+lmax,radius,mae,rmse,r2,loss,params,time,status
+3,8.0,,,,,,7.7,failed
+3,12.0,,,,,,7.7,failed
+3,16.0,,,,,,7.7,failed
+4,8.0,,,,,,7.7,failed
+4,12.0,,,,,,7.8,failed
+4,16.0,,,,,,7.7,failed

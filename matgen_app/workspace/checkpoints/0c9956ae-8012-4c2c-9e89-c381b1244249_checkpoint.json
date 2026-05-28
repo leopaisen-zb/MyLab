@@ -1,0 +1,29 @@
+{
+  "task_id": "0c9956ae-8012-4c2c-9e89-c381b1244249",
+  "timestamp": "2026-05-27T21:13:11.930128",
+  "data": {
+    "task_id": "0c9956ae-8012-4c2c-9e89-c381b1244249",
+    "config": {
+      "target_dgH": -0.5,
+      "tolerance": 0.05,
+      "elements": [
+        "Ir",
+        "Pd",
+        "Pt",
+        "Rh",
+        "Ru"
+      ],
+      "batch_size": 10,
+      "element_percentages": null
+    },
+    "status": "created",
+    "created_at": "2026-05-27T21:13:11.930110",
+    "structures": {},
+    "stats": {
+      "total": 0,
+      "processed": 0,
+      "success": 0,
+      "failed": 0
+    }
+  }
+}

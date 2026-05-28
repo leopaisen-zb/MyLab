@@ -1,0 +1,88 @@
+{
+  "timestamp": "20260527_011108",
+  "fixed_params": {
+    "num_layers": 3,
+    "sphere_channels": 128,
+    "num_heads": 4,
+    "ffn_hidden_channels": 128,
+    "edge_channels": 128,
+    "num_gaussians": 256,
+    "attn_hidden_channels": 32,
+    "attn_alpha_channels": 16,
+    "attn_value_channels": 8,
+    "max_neighbors": 20,
+    "batch_size": 16,
+    "lr": 0.0002,
+    "num_epochs": 30,
+    "seed": 42,
+    "patience": 10
+  },
+  "results": [
+    {
+      "lmax": 3,
+      "radius": 8.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7200.19642496109,
+      "status": "timeout"
+    },
+    {
+      "lmax": 3,
+      "radius": 12.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7200.213318824768,
+      "status": "timeout"
+    },
+    {
+      "lmax": 3,
+      "radius": 16.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7200.230508327484,
+      "status": "timeout"
+    },
+    {
+      "lmax": 4,
+      "radius": 8.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7200.17090845108,
+      "status": "timeout"
+    },
+    {
+      "lmax": 4,
+      "radius": 12.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7200.256102561951,
+      "status": "timeout"
+    },
+    {
+      "lmax": 4,
+      "radius": 16.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7200.276025295258,
+      "status": "timeout"
+    }
+  ]
+}

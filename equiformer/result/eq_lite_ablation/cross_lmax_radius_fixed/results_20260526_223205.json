@@ -1,0 +1,94 @@
+{
+  "timestamp": "20260526_223205",
+  "fixed_params": {
+    "num_layers": 3,
+    "sphere_channels": 128,
+    "num_heads": 4,
+    "ffn_hidden_channels": 128,
+    "edge_channels": 128,
+    "num_gaussians": 256,
+    "attn_hidden_channels": 32,
+    "attn_alpha_channels": 16,
+    "attn_value_channels": 8,
+    "max_neighbors": 20,
+    "batch_size": 16,
+    "lr": 0.0002,
+    "num_epochs": 30,
+    "seed": 42,
+    "patience": 10
+  },
+  "results": [
+    {
+      "lmax": 3,
+      "radius": 8.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7.69232702255249,
+      "status": "failed",
+      "error": "_CKPT]\n                                       [--exp_name EXP_NAME]\n                                       [--batch_size BATCH_SIZE] [--lr LR]\n                                       [--weight_decay WEIGHT_DECAY]\n                                       [--num_epochs NUM_EPOCHS] [--seed SEED]\n                                       [--experiment_tag EXPERIMENT_TAG]\ntrain_enhanced_equiformer_v2.py: error: unrecognized arguments: --tag cross_fixed_cpu_20260526_223205 --num_gaussians 256 --patience 10\n"
+    },
+    {
+      "lmax": 3,
+      "radius": 12.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7.694681644439697,
+      "status": "failed",
+      "error": "_CKPT]\n                                       [--exp_name EXP_NAME]\n                                       [--batch_size BATCH_SIZE] [--lr LR]\n                                       [--weight_decay WEIGHT_DECAY]\n                                       [--num_epochs NUM_EPOCHS] [--seed SEED]\n                                       [--experiment_tag EXPERIMENT_TAG]\ntrain_enhanced_equiformer_v2.py: error: unrecognized arguments: --tag cross_fixed_cpu_20260526_223205 --num_gaussians 256 --patience 10\n"
+    },
+    {
+      "lmax": 3,
+      "radius": 16.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7.713012218475342,
+      "status": "failed",
+      "error": "_CKPT]\n                                       [--exp_name EXP_NAME]\n                                       [--batch_size BATCH_SIZE] [--lr LR]\n                                       [--weight_decay WEIGHT_DECAY]\n                                       [--num_epochs NUM_EPOCHS] [--seed SEED]\n                                       [--experiment_tag EXPERIMENT_TAG]\ntrain_enhanced_equiformer_v2.py: error: unrecognized arguments: --tag cross_fixed_cpu_20260526_223205 --num_gaussians 256 --patience 10\n"
+    },
+    {
+      "lmax": 4,
+      "radius": 8.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7.732752084732056,
+      "status": "failed",
+      "error": "_CKPT]\n                                       [--exp_name EXP_NAME]\n                                       [--batch_size BATCH_SIZE] [--lr LR]\n                                       [--weight_decay WEIGHT_DECAY]\n                                       [--num_epochs NUM_EPOCHS] [--seed SEED]\n                                       [--experiment_tag EXPERIMENT_TAG]\ntrain_enhanced_equiformer_v2.py: error: unrecognized arguments: --tag cross_fixed_cpu_20260526_223205 --num_gaussians 256 --patience 10\n"
+    },
+    {
+      "lmax": 4,
+      "radius": 12.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7.772601366043091,
+      "status": "failed",
+      "error": "_CKPT]\n                                       [--exp_name EXP_NAME]\n                                       [--batch_size BATCH_SIZE] [--lr LR]\n                                       [--weight_decay WEIGHT_DECAY]\n                                       [--num_epochs NUM_EPOCHS] [--seed SEED]\n                                       [--experiment_tag EXPERIMENT_TAG]\ntrain_enhanced_equiformer_v2.py: error: unrecognized arguments: --tag cross_fixed_cpu_20260526_223205 --num_gaussians 256 --patience 10\n"
+    },
+    {
+      "lmax": 4,
+      "radius": 16.0,
+      "mae": null,
+      "rmse": null,
+      "r2": null,
+      "loss": null,
+      "params": null,
+      "time": 7.727397441864014,
+      "status": "failed",
+      "error": "_CKPT]\n                                       [--exp_name EXP_NAME]\n                                       [--batch_size BATCH_SIZE] [--lr LR]\n                                       [--weight_decay WEIGHT_DECAY]\n                                       [--num_epochs NUM_EPOCHS] [--seed SEED]\n                                       [--experiment_tag EXPERIMENT_TAG]\ntrain_enhanced_equiformer_v2.py: error: unrecognized arguments: --tag cross_fixed_cpu_20260526_223205 --num_gaussians 256 --patience 10\n"
+    }
+  ]
+}

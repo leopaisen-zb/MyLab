@@ -1,0 +1,7 @@
+lmax,radius,mae,rmse,r2,loss,params,time,status
+3,8.0,,,,,,7200.2,timeout
+3,12.0,,,,,,7200.2,timeout
+3,16.0,,,,,,7200.2,timeout
+4,8.0,,,,,,7200.2,timeout
+4,12.0,,,,,,7200.3,timeout
+4,16.0,,,,,,7200.3,timeout
