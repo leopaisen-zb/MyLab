@@ -1,12 +1,11 @@
 # core/task_orchestrator.py
 import uuid
-import random
 import threading
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from core.state_machine import StructureState, StateTransition
 from core.checkpoint import CheckpointManager
-from adapters.hea_gen_adapter import HEAGenAdapter, generate_fake_poscar
+from adapters.hea_gen_adapter import HEAGenAdapter, generate_fake_poscar, composition_from_poscar
 from adapters.eq_adapter import EQAdapter
 from persistence.workspace import Workspace
 from persistence.state_store import StateStore
@@ -76,7 +75,7 @@ class TaskOrchestrator:
             for _ in range(batch_size):
                 poscar = generate_fake_poscar(elements, num_atoms=20)
                 results.append({
-                    "elements": "".join([f"{el}{random.randint(1, 5)}" for el in elements[:3]]),
+                    "elements": composition_from_poscar(poscar) or "".join(elements),
                     "poscar": poscar,
                     "target_dgH": target_dgH,
                 })

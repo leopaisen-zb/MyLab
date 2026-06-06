@@ -4,7 +4,51 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from adapters.hea_gen_adapter import HEAGenAdapter, generate_fake_poscar, ELEMENT_SYMBOLS
+from adapters.hea_gen_adapter import (
+    HEAGenAdapter, generate_fake_poscar, composition_from_poscar, ELEMENT_SYMBOLS,
+)
+
+
+def _total_atoms(comp: str) -> int:
+    """从组成串(如 Ir4Pd4Pt4)累加原子数。"""
+    import re
+    return sum(int(n) for n in re.findall(r"\d+", comp))
+
+
+class TestCompositionFromPoscar:
+    """组成提取助手：elements 字段必须与 POSCAR 实际原子一致（修复 elements 占位 bug）。"""
+
+    def test_matches_fake_poscar_5_elements(self):
+        poscar = generate_fake_poscar(["Ir", "Pd", "Pt", "Rh", "Ru"], num_atoms=20)
+        comp = composition_from_poscar(poscar)
+        # 5 个元素全在，且总原子数 = 20（不是只取前3个/随机）
+        for el in ["Ir", "Pd", "Pt", "Rh", "Ru"]:
+            assert el in comp
+        assert _total_atoms(comp) == 20
+
+    def test_total_atoms_match_num_atoms(self):
+        poscar = generate_fake_poscar(["Ir", "Pd", "Pt"], num_atoms=12)
+        assert _total_atoms(composition_from_poscar(poscar)) == 12
+
+    def test_invalid_poscar_returns_empty(self):
+        assert composition_from_poscar("not a poscar") == ""
+
+
+class TestGenerateBatchElementsConsistency:
+    """generate_batch 产出的 elements 字段必须与其 poscar 真实组成一致。"""
+
+    def test_elements_field_matches_poscar(self, monkeypatch):
+        import os
+        os.environ["MATGEN_DEMO"] = "0"  # 强制走 fallback 假生成器(forward 内 backend 不可用时)
+        adapter = HEAGenAdapter()
+        batch = adapter.generate_batch(target_dgH=-0.5,
+                                       elements=["Ir", "Pd", "Pt", "Rh", "Ru"],
+                                       batch_size=3)
+        for item in batch:
+            expected = composition_from_poscar(item["poscar"])
+            assert item["elements"] == expected
+            # 原子总数应与 poscar 一致，而非随机 3 元素小数
+            assert _total_atoms(item["elements"]) == _total_atoms(expected)
 
 
 class TestGenerateFakePoscar:

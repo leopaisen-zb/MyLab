@@ -40,6 +40,39 @@ def generate_fake_poscar(elements: List[str], num_atoms: int = 20) -> str:
         lines.append(f"{random.uniform(0, 9):.10f} {random.uniform(0, 9):.10f} {random.uniform(0, 9):.10f}")
     return "\n".join(lines)
 
+def composition_from_poscar(poscar_text: str) -> str:
+    """从 POSCAR 文本提取真实组成字符串（如 'Ir4Pd4Pt4Rh4Ru4'），按首次出现顺序聚合。
+
+    用作结构记录的 elements 字段，保证与 POSCAR 实际原子数严格一致。
+    解析失败返回 ''（调用方可回退）。
+    """
+    # 优先用 pymatgen（更鲁棒，可处理重复元素行）
+    if PYMGEN_AVAILABLE:
+        try:
+            struct = Structure.from_str(poscar_text, "poscar")
+            counts: Dict[str, int] = {}
+            for site in struct.sites:
+                el = str(site.specie)
+                counts[el] = counts.get(el, 0) + 1
+            if counts:
+                return "".join(f"{el}{n}" for el, n in counts.items())
+        except Exception:
+            pass
+    # 回退：手动解析"元素符号行 + 计数行"（标准 POSCAR 格式）
+    lines = poscar_text.splitlines()
+    for i in range(len(lines) - 1):
+        syms = lines[i].split()
+        nums = lines[i + 1].split()
+        if (syms and nums and len(syms) == len(nums)
+                and all(s.isalpha() for s in syms)
+                and all(n.isdigit() for n in nums)):
+            counts = {}
+            for el, n in zip(syms, nums):
+                counts[el] = counts.get(el, 0) + int(n)
+            return "".join(f"{el}{v}" for el, v in counts.items())
+    return ""
+
+
 class HEAGenAdapter(BaseAdapter):
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         default_config = {
@@ -93,7 +126,7 @@ class HEAGenAdapter(BaseAdapter):
         for _ in range(batch_size):
             poscar = self.forward({"elements": elements, "target_dgH": target_dgH})
             results.append({
-                "elements": "".join([f"{el}{random.randint(1,5)}" for el in elements[:3]]),
+                "elements": composition_from_poscar(poscar) or "".join(elements),
                 "poscar": poscar,
                 "target_dgH": target_dgH
             })
