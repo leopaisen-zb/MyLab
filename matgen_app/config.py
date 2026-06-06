@@ -75,6 +75,13 @@ PRED_MODELS = [
 DEFAULT_GEN_MODEL_ID  = "qwen_lora"
 DEFAULT_PRED_MODEL_ID = "equiformer_v2"
 
+# ── Demo 隔离路径（demo retrain 绝不写真实 RAG 训练集）──────────────────────
+DEMO_TRAIN_DATA_PATH = PROJECT_ROOT / "matgen_app" / "workspace" / "demo_train_data.json"
+DEMO_NEAR_NEIGHBOR_PATH = PROJECT_ROOT / "matgen_app" / "workspace" / "demo_near_neighbor.json"
+
+# ── 版本注册表路径（绝对路径，避免 cwd 敏感）────────────────────────────────
+REGISTRY_PATH = PROJECT_ROOT / "matgen_app" / "workspace" / "model_versions.json"
+
 SYSTEM_INSTRUCTION = (
     "You are a materials science expert. "
     "Given the physical and chemical properties of a hydrogen storage material "

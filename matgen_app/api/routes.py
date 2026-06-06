@@ -6,8 +6,13 @@ from api.schemas import (
     DFTResultRequest, DFTBatchItem, DFTBatchResponse,
 )
 from core.task_orchestrator import TaskOrchestrator
+from backend.model_registry import ModelVersionRegistry
+from backend.retrain import run_retrain
 import uuid
 import config as _cfg
+
+# P1-3: 版本注册表（绝对路径，避免 cwd 敏感）
+_registry = ModelVersionRegistry(path=str(_cfg.REGISTRY_PATH))
 
 router = APIRouter()
 orchestrator = TaskOrchestrator()
@@ -108,3 +113,42 @@ async def list_models():
 @router.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "MatGen-Eq API"}
+
+
+# ── P1-3: 版本注册表 + 一键重训 ─────────────────────────────────────────────
+
+@router.get("/models/versions")
+async def list_model_versions():
+    """返回所有模型的版本历史（来自持久化注册表）。"""
+    return _registry.list_all()
+
+
+@router.post("/models/retrain")
+async def trigger_retrain(body: dict):
+    """
+    一键重训（demo 模式，同步执行）。
+
+    请求体：{"model_kind": "prediction" | "generation"}
+
+    真实训练耗时长，此端点始终以 demo 模式运行（跳过真实训练，注册 mock 版本）。
+    答辩演示闭环用。
+    """
+    model_kind = body.get("model_kind", "prediction")
+    if model_kind not in ("prediction", "generation"):
+        raise HTTPException(
+            status_code=400,
+            detail="model_kind 必须是 'prediction' 或 'generation'"
+        )
+    try:
+        result = run_retrain(
+            model_kind=model_kind,
+            store=orchestrator.state_store,
+            registry=_registry,
+            demo=True,  # API 始终用 demo 模式（真实训练应通过 CLI 脚本触发）
+            # 显式传 demo 隔离路径，确保 demo 演示绝不碰真实 RAG 训练集
+            dataset_path=str(_cfg.DEMO_TRAIN_DATA_PATH),
+            index_path=str(_cfg.DEMO_NEAR_NEIGHBOR_PATH),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return result

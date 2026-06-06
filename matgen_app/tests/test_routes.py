@@ -227,3 +227,103 @@ class TestValidateEndpointStateTransition:
         client, uid = self._make_app_with_record(temp_db, "filtered_in")
         resp = client.post(f"/api/v1/structures/{uid}/validate?decision=rejected")
         assert resp.status_code == 200
+
+
+# ── LOW-7: GET /models/versions 和 POST /models/retrain 路由测试 ──────────
+
+class TestModelVersionsEndpoint:
+    """LOW-7：GET /models/versions 端点测试。"""
+
+    def _make_app(self):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from api.routes import router
+        app = FastAPI()
+        app.include_router(router, prefix="/api/v1")
+        return TestClient(app)
+
+    def test_get_versions_returns_200(self):
+        """GET /models/versions 应返回 200。"""
+        client = self._make_app()
+        resp = client.get("/api/v1/models/versions")
+        assert resp.status_code == 200
+
+    def test_get_versions_returns_dict(self):
+        """GET /models/versions 返回值应是字典结构（model_id -> [versions]）。"""
+        client = self._make_app()
+        resp = client.get("/api/v1/models/versions")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert isinstance(data, dict)
+
+
+class TestRetrainEndpoint:
+    """LOW-7：POST /models/retrain 端点测试。"""
+
+    def _make_app_with_mock(self, monkeypatch):
+        """创建 FastAPI app，mock run_retrain 为快速 demo 返回。"""
+        def _mock_run_retrain(**kwargs):
+            return {
+                "model_kind": kwargs.get("model_kind"),
+                "demo": True,
+                "feedback": {
+                    "validated_count": 0, "appended": 0,
+                    "skipped_duplicates": 0, "total": 0,
+                    "num_entries": 0, "index_path": "",
+                },
+                "new_version": {
+                    "version": "v1",
+                    "checkpoint_path": "mock.pt",
+                    "created_at": "2026-01-01T00:00:00",
+                    "notes": "demo retrain",
+                    "metrics": {},
+                },
+            }
+
+        monkeypatch.setattr("api.routes.run_retrain", _mock_run_retrain)
+
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from api.routes import router
+        app = FastAPI()
+        app.include_router(router, prefix="/api/v1")
+        return TestClient(app)
+
+    def test_retrain_prediction_returns_200(self, monkeypatch):
+        """POST /models/retrain 合法 prediction 请求应返回 200。"""
+        client = self._make_app_with_mock(monkeypatch)
+        resp = client.post("/api/v1/models/retrain", json={"model_kind": "prediction"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["model_kind"] == "prediction"
+
+    def test_retrain_generation_returns_200(self, monkeypatch):
+        """POST /models/retrain 合法 generation 请求应返回 200。"""
+        client = self._make_app_with_mock(monkeypatch)
+        resp = client.post("/api/v1/models/retrain", json={"model_kind": "generation"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["model_kind"] == "generation"
+
+    def test_retrain_invalid_model_kind_returns_400(self, monkeypatch):
+        """POST /models/retrain 非法 model_kind 应返回 400。"""
+        client = self._make_app_with_mock(monkeypatch)
+        resp = client.post("/api/v1/models/retrain", json={"model_kind": "invalid_model"})
+        assert resp.status_code == 400
+
+    def test_retrain_response_has_new_version(self, monkeypatch):
+        """POST /models/retrain 返回值应包含 new_version 字段。"""
+        client = self._make_app_with_mock(monkeypatch)
+        resp = client.post("/api/v1/models/retrain", json={"model_kind": "prediction"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "new_version" in data
+        assert "version" in data["new_version"]
+
+    def test_retrain_response_has_feedback(self, monkeypatch):
+        """POST /models/retrain 返回值应包含 feedback 字段。"""
+        client = self._make_app_with_mock(monkeypatch)
+        resp = client.post("/api/v1/models/retrain", json={"model_kind": "prediction"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "feedback" in data

@@ -10,6 +10,7 @@ from adapters.hea_gen_adapter import HEAGenAdapter, generate_fake_poscar
 from adapters.eq_adapter import EQAdapter
 from persistence.workspace import Workspace
 from persistence.state_store import StateStore
+from backend.model_registry import ModelVersionRegistry
 import config as _cfg
 
 class TaskOrchestrator:
@@ -21,6 +22,8 @@ class TaskOrchestrator:
         self.hea_gen_adapter = HEAGenAdapter()
         self.eq_adapter = EQAdapter()
         self._lock = threading.Lock()
+        # P1-3: 版本注册表（绝对路径，避免 cwd 敏感）
+        self.model_registry = ModelVersionRegistry(path=str(_cfg.REGISTRY_PATH))
 
     def task_exists(self, task_id: str) -> bool:
         return task_id in self.tasks
@@ -109,6 +112,10 @@ class TaskOrchestrator:
         gen_model_id  = self._resolve_gen_model_id(config.get("gen_model_id"))
         pred_model_id = self._resolve_pred_model_id(config.get("pred_model_id"))
 
+        # P1-3: 取当前预测模型版本（无版本时记为 "base"）
+        _latest_ver = self.model_registry.get_latest_version(pred_model_id)
+        pred_model_version = _latest_ver["version"] if _latest_ver else "base"
+
         if config.get("target_dgH") is None:
             task["status"] = "failed"
             task["error"] = "target_dgH is required"
@@ -133,7 +140,12 @@ class TaskOrchestrator:
                     "poscar": struct_data.get("poscar", ""),
                     "target_dgH": config.get("target_dgH"),
                     "created_at": datetime.now().isoformat(),
-                    "task_id": task_id
+                    "task_id": task_id,
+                    # P1-3: 在 metadata 中记录本次预测所用模型 id 和版本
+                    "metadata": {
+                        "pred_model_id": pred_model_id,
+                        "pred_model_version": pred_model_version,
+                    },
                 }
 
                 self.state_store.save_record(struct_id, struct_record)
