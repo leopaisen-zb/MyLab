@@ -12,15 +12,18 @@ sys.path.insert(0, str(Path(__file__).parent))
 API_BASE = os.environ.get("MATGEN_API_URL", "http://localhost:8000/api/v1")
 
 st.set_page_config(
-    page_title="MatGen-Eq 材料发现系统",
+    page_title="MatGen-Eq 候选结构生成与筛选系统",
     page_icon="🔬",
     layout="wide"
 )
 
-st.title("🔬 MatGen-Eq 智能材料发现系统")
+st.title("MatGen-Eq 候选结构生成与筛选原型系统")
 st.markdown("**四层微服务架构**：交互层 → 任务编排层 → 算法适配层 → 数据持久化层")
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📝 结构生成", "📊 预测结果", "🔍 专家审查", "⚗️ DFT 回填", "🏗️ 架构监控"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "📝 结构生成", "📊 预测结果", "🔍 专家审查",
+    "⚗️ DFT 回填", "🏗️ 架构监控", "🔄 飞轮全景",
+])
 
 with tab1:
     st.header("结构生成参数配置")
@@ -188,6 +191,140 @@ with tab4:
             except requests.exceptions.ConnectionError:
                 st.warning("⚠️ API 服务未启动")
 
+with tab6:
+    st.header("🔄 飞轮全景监控")
+
+    # ── 飞轮 8 环节流程图（文字版，答辩讲解用）────────────────────────────
+    st.subheader("飞轮 8 环节闭环")
+    st.markdown("""
+    ```
+    ①生成 → ②预测 → ③初筛 → ④DFT回填 → ⑤专家确认 → ⑥导出 → ⑦数据集回灌 → ⑧重训+版本注册
+       ↑                                                                              │
+       └──────────────────────── 飞轮闭环 ─────────────────────────────────────────────┘
+    ```
+    | 环节 | 动作 | 输出状态 |
+    |------|------|----------|
+    | ① 生成 | HEA-Gen / fake 生成 POSCAR | `generated` |
+    | ② 预测 | Eqv2-Lite / toy_mlp 预测 ΔG_H | `predicted` |
+    | ③ 初筛 | ΔG_H 容差过滤 | `filtered_in` / `filtered_out` |
+    | ④ DFT 回填 | 外部 DFT 结果写入 | `dft_verified` |
+    | ⑤ 专家确认 | 人工审查质量 | `validated` / `rejected` |
+    | ⑥ 导出 | export_validated() 取数据 | — |
+    | ⑦ 数据集回灌 | 追加训练集 + 重建近邻索引 | `exported_for_training` |
+    | ⑧ 重训注册 | demo/真实 retrain + 版本号 | 新版本 v{n} |
+    """)
+
+    st.divider()
+
+    # ── 各状态结构计数 ─────────────────────────────────────────────────────
+    st.subheader("各状态结构计数")
+    try:
+        resp_states = requests.get(f"{API_BASE}/stats/states", timeout=5)
+        if resp_states.status_code == 200:
+            dist = resp_states.json()
+            if dist:
+                # st.metric 展示
+                state_cols = st.columns(min(len(dist), 5))
+                for i, (state, count) in enumerate(sorted(dist.items())):
+                    state_cols[i % len(state_cols)].metric(state, count)
+                # 柱状图
+                st.bar_chart(dist)
+            else:
+                st.info("数据库暂无结构记录（尚未执行生成任务）")
+        else:
+            st.error(f"获取状态分布失败: {resp_states.status_code}")
+    except requests.exceptions.ConnectionError:
+        st.warning("⚠️ API 服务未启动，请先运行: `python main.py`")
+    except Exception as e:
+        st.warning(f"⚠️ 获取状态分布失败: {e}")
+
+    st.divider()
+
+    # ── 模型版本历史 ───────────────────────────────────────────────────────
+    st.subheader("模型版本历史")
+    try:
+        resp_ver = requests.get(f"{API_BASE}/models/versions", timeout=5)
+        if resp_ver.status_code == 200:
+            versions_data = resp_ver.json()
+            if versions_data:
+                for model_id, versions in versions_data.items():
+                    with st.expander(f"模型: {model_id}  （共 {len(versions)} 个版本）"):
+                        for v in reversed(versions):
+                            st.markdown(
+                                f"**{v.get('version','?')}**  |  "
+                                f"{v.get('created_at','')[:19]}  |  "
+                                f"_{v.get('notes','')}_"
+                            )
+                            if v.get("metrics"):
+                                st.json(v["metrics"])
+            else:
+                st.info("暂无版本记录（尚未执行重训）")
+        else:
+            st.error(f"获取版本历史失败: {resp_ver.status_code}")
+    except requests.exceptions.ConnectionError:
+        st.warning("⚠️ API 服务未启动，请先运行: `python main.py`")
+    except Exception as e:
+        st.warning(f"⚠️ 获取版本历史失败: {e}")
+
+    st.divider()
+
+    # ── 可用模型清单 ───────────────────────────────────────────────────────
+    st.subheader("可用模型清单")
+    try:
+        resp_models = requests.get(f"{API_BASE}/models", timeout=5)
+        if resp_models.status_code == 200:
+            models_data = resp_models.json()
+            col_gen, col_pred = st.columns(2)
+            with col_gen:
+                st.markdown("**生成模型**")
+                for m in models_data.get("gen_models", []):
+                    default_tag = " ★" if m["id"] == models_data.get("default_gen_model_id") else ""
+                    st.markdown(f"- `{m['id']}`{default_tag}  {m.get('description','')}")
+            with col_pred:
+                st.markdown("**预测模型**")
+                for m in models_data.get("pred_models", []):
+                    default_tag = " ★" if m["id"] == models_data.get("default_pred_model_id") else ""
+                    st.markdown(f"- `{m['id']}`{default_tag}  {m.get('description','')}")
+        else:
+            st.error(f"获取模型清单失败: {resp_models.status_code}")
+    except requests.exceptions.ConnectionError:
+        st.warning("⚠️ API 服务未启动，请先运行: `python main.py`")
+    except Exception as e:
+        st.warning(f"⚠️ 获取模型清单失败: {e}")
+
+    st.divider()
+
+    # ── 一键 Demo 重训 ────────────────────────────────────────────────────
+    st.subheader("一键 Demo 重训")
+    retrain_kind = st.selectbox("选择重训模型类型", ["prediction", "generation"], key="flywheel_retrain_kind")
+    if st.button("🚀 触发 Demo 重训", type="primary", key="flywheel_retrain_btn"):
+        with st.spinner("正在执行 demo 重训（同步）..."):
+            try:
+                resp_retrain = requests.post(
+                    f"{API_BASE}/models/retrain",
+                    json={"model_kind": retrain_kind},
+                    timeout=30,
+                )
+                if resp_retrain.status_code == 200:
+                    retrain_result = resp_retrain.json()
+                    nv = retrain_result.get("new_version", {})
+                    st.success(
+                        f"重训完成！新版本: **{nv.get('version','?')}**  |  "
+                        f"注释: {nv.get('notes','')}"
+                    )
+                    fb = retrain_result.get("feedback", {})
+                    st.markdown(
+                        f"回灌统计: validated={fb.get('validated_count',0)}  "
+                        f"appended={fb.get('appended',0)}  total={fb.get('total',0)}"
+                    )
+                    st.json(retrain_result)
+                else:
+                    st.error(f"重训失败: {resp_retrain.status_code} — {resp_retrain.text}")
+            except requests.exceptions.ConnectionError:
+                st.warning("⚠️ API 服务未启动，请先运行: `python main.py`")
+            except Exception as e:
+                st.error(f"重训出错: {e}")
+
 with tab5:
     st.header("🏗️ 系统架构监控")
     st.subheader("四层架构状态")
@@ -211,5 +348,5 @@ with tab5:
         if resp.status_code == 200:
             st.success("✅ API服务健康")
             st.json(resp.json())
-    except:
+    except Exception:
         st.warning("⚠️ API服务未响应，请运行 `python main.py` 启动服务")

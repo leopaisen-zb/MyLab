@@ -245,5 +245,8 @@ class TaskOrchestrator:
             record["decision"] = decision
             record["updated_at"] = datetime.now().isoformat()
             self.state_store.save_record(structure_id, record)
+            self.state_store.record_state_change(
+                structure_id, current.value, target.value, reason="expert decision"
+            )
             return True
         return False

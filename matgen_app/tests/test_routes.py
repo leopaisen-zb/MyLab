@@ -327,3 +327,40 @@ class TestRetrainEndpoint:
         assert resp.status_code == 200
         data = resp.json()
         assert "feedback" in data
+
+
+# ── P2: GET /stats/states 状态分布端点测试 ───────────────────────────────────
+
+class TestStatsStatesEndpoint:
+    """P2：GET /stats/states 端点测试。"""
+
+    def _make_app(self):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from api.routes import router
+        app = FastAPI()
+        app.include_router(router, prefix="/api/v1")
+        return TestClient(app)
+
+    def test_stats_states_returns_200(self):
+        """GET /stats/states 应返回 200。"""
+        client = self._make_app()
+        resp = client.get("/api/v1/stats/states")
+        assert resp.status_code == 200
+
+    def test_stats_states_returns_dict(self):
+        """GET /stats/states 返回值应为字典（{状态: 计数}）。"""
+        client = self._make_app()
+        resp = client.get("/api/v1/stats/states")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert isinstance(data, dict)
+
+    def test_stats_states_values_are_ints(self):
+        """GET /stats/states 返回 dict 的所有值应为整数（计数）。"""
+        client = self._make_app()
+        resp = client.get("/api/v1/stats/states")
+        assert resp.status_code == 200
+        data = resp.json()
+        for k, v in data.items():
+            assert isinstance(v, int), f"状态 '{k}' 的计数应为整数，实际: {v}"

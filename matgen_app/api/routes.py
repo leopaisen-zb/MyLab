@@ -110,6 +110,12 @@ async def list_models():
         "default_pred_model_id": _cfg.DEFAULT_PRED_MODEL_ID,
     }
 
+@router.get("/stats/states")
+async def get_state_distribution():
+    """P2：返回全量结构的状态分布 {状态: 计数}，供飞轮监控页使用。"""
+    return orchestrator.state_store.get_state_distribution()
+
+
 @router.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "MatGen-Eq API"}
