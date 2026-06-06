@@ -11,11 +11,11 @@ class TestStructureState:
     """Test StructureState enum values."""
 
     def test_all_states_defined(self):
-        """All 8 states should be defined."""
+        """All 9 states should be defined (dft_verified added in P1-1)."""
         expected_states = {
             "generated", "rejected_precheck", "predicted",
-            "filtered_in", "filtered_out", "validated", "rejected",
-            "exported_for_training"
+            "filtered_in", "filtered_out", "dft_verified",
+            "validated", "rejected", "exported_for_training"
         }
         actual = {s.value for s in StructureState}
         assert actual == expected_states
@@ -54,10 +54,16 @@ class TestStateTransition:
             StructureState.PREDICTED, StructureState.FILTERED_OUT
         ) is True
 
-    def test_valid_transition_filtered_in_to_validated(self):
-        """Filtered_in can transition to validated (expert approval)."""
+    def test_valid_transition_filtered_in_to_dft_verified(self):
+        """Filtered_in transitions to dft_verified (DFT backfill, P1-1)."""
         assert StateTransition.can_transition(
-            StructureState.FILTERED_IN, StructureState.VALIDATED
+            StructureState.FILTERED_IN, StructureState.DFT_VERIFIED
+        ) is True
+
+    def test_valid_transition_dft_verified_to_validated(self):
+        """Dft_verified can transition to validated (expert approval after DFT)."""
+        assert StateTransition.can_transition(
+            StructureState.DFT_VERIFIED, StructureState.VALIDATED
         ) is True
 
     def test_valid_transition_filtered_in_to_rejected(self):
@@ -117,9 +123,9 @@ class TestStateTransition:
         assert next_states == {StructureState.REJECTED_PRECHECK, StructureState.PREDICTED}
 
     def test_get_next_states_from_filtered_in(self):
-        """Get all valid next states from filtered_in."""
+        """Get all valid next states from filtered_in (P1-1: dft_verified replaces validated)."""
         next_states = StateTransition.get_next_states(StructureState.FILTERED_IN)
-        assert next_states == {StructureState.VALIDATED, StructureState.REJECTED}
+        assert next_states == {StructureState.DFT_VERIFIED, StructureState.REJECTED}
 
     def test_get_next_states_terminal_empty(self):
         """Terminal states have no next states."""

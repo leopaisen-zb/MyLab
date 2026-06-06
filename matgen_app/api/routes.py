@@ -1,6 +1,10 @@
 # api/routes.py
+from typing import List
 from fastapi import APIRouter, HTTPException, BackgroundTasks
-from api.schemas import GenerationRequest, GenerationResponse, TaskStatusResponse, StructureStatus
+from api.schemas import (
+    GenerationRequest, GenerationResponse, TaskStatusResponse, StructureStatus,
+    DFTResultRequest, DFTBatchItem, DFTBatchResponse,
+)
 from core.task_orchestrator import TaskOrchestrator
 import uuid
 import config as _cfg
@@ -46,10 +50,50 @@ async def get_structure(structure_id: str):
 async def validate_structure(structure_id: str, decision: str):
     if decision not in ["validated", "rejected"]:
         raise HTTPException(status_code=400, detail="Decision must be 'validated' or 'rejected'")
+    record = orchestrator.get_structure_record(structure_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Structure not found")
     result = orchestrator.update_structure_decision(structure_id, decision)
     if not result:
-        raise HTTPException(status_code=404, detail="Structure not found")
+        raise HTTPException(
+            status_code=409,
+            detail="Invalid state transition: structure must be in 'dft_verified' to validate "
+                   "(or 'filtered_in'/'dft_verified' to reject)"
+        )
     return {"structure_id": structure_id, "decision": decision}
+
+@router.post("/structures/dft/batch", response_model=DFTBatchResponse)
+async def batch_submit_dft(items: List[DFTBatchItem]):
+    """P1-1：批量 DFT 结果回填。接收 JSON 数组，返回成功数与失败 UUID 列表。"""
+    success_count = 0
+    failed: List[str] = []
+    for item in items:
+        ok = orchestrator.submit_dft_result(
+            item.uuid, dft_dg_h=item.dft_dg_h, dft_energy=item.dft_energy
+        )
+        if ok:
+            success_count += 1
+        else:
+            failed.append(item.uuid)
+    return DFTBatchResponse(success_count=success_count, failed=failed)
+
+
+@router.post("/structures/{structure_id}/dft")
+async def submit_dft_result(structure_id: str, req: DFTResultRequest):
+    """P1-1：单条 DFT 结果回填。将状态从 filtered_in 推进到 dft_verified。"""
+    record = orchestrator.get_structure_record(structure_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Structure not found")
+    success = orchestrator.submit_dft_result(
+        structure_id, dft_dg_h=req.dft_dg_h, dft_energy=req.dft_energy
+    )
+    if not success:
+        raise HTTPException(
+            status_code=409,
+            detail="State transition failed: structure must be in filtered_in state"
+        )
+    return {"structure_id": structure_id, "status": "dft_verified"}
+
 
 @router.get("/models")
 async def list_models():

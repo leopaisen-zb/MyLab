@@ -147,10 +147,83 @@ class TestAPISchemas:
             GenerationRequest(target_dgH=-0.5, batch_size=1000)
 
     def test_structure_status_enum_values(self):
-        """Test StructureStatus enum has all expected values."""
+        """Test StructureStatus enum has all expected values (dft_verified added in P1-1)."""
         expected = {
             "generated", "rejected_precheck", "predicted",
-            "filtered_in", "filtered_out", "validated", "rejected"
+            "filtered_in", "filtered_out", "dft_verified", "validated", "rejected",
+            "exported_for_training",  # M-1 补充
         }
         actual = {s.value for s in StructureStatus}
         assert actual == expected
+
+    def test_structure_status_has_exported_for_training(self):
+        """M-1 修复：StructureStatus 应包含 EXPORTED_FOR_TRAINING = 'exported_for_training'。"""
+        assert hasattr(StructureStatus, "EXPORTED_FOR_TRAINING")
+        assert StructureStatus.EXPORTED_FOR_TRAINING.value == "exported_for_training"
+
+
+class TestValidateEndpointStateTransition:
+    """H-1 修复：/validate 端点区分 404（不存在）和 409（非法状态转移）。"""
+
+    def _make_app_with_record(self, temp_db, status: str):
+        """创建独立 FastAPI app + 预插入指定状态记录，返回 (client, uid)。"""
+        import uuid as _uuid
+        from fastapi import FastAPI, APIRouter, HTTPException
+        from fastapi.testclient import TestClient
+        from persistence.state_store import StateStore
+        from core.task_orchestrator import TaskOrchestrator
+
+        store = StateStore(db_path=temp_db)
+        uid = str(_uuid.uuid4())
+        store.save_record(uid, {
+            "task_id": "t1", "status": status,
+            "elements": "Ir2", "poscar": "POSCAR",
+        })
+
+        orch = TaskOrchestrator.__new__(TaskOrchestrator)
+        orch.state_store = store
+
+        app = FastAPI()
+        local_router = APIRouter()
+
+        @local_router.post("/structures/{sid}/validate")
+        async def _validate(sid: str, decision: str):
+            if decision not in ["validated", "rejected"]:
+                raise HTTPException(status_code=400, detail="bad decision")
+            record = orch.state_store.get_record(sid)
+            if record is None:
+                raise HTTPException(status_code=404, detail="Structure not found")
+            result = orch.update_structure_decision(sid, decision)
+            if not result:
+                raise HTTPException(status_code=409, detail="Invalid state transition")
+            return {"structure_id": sid, "decision": decision}
+
+        app.include_router(local_router, prefix="/api/v1")
+        return TestClient(app), uid
+
+    def test_validate_filtered_in_returns_409(self, temp_db):
+        """H-1 修复：filtered_in 状态的结构调 validate?decision=validated 应返回 409，不是 404。"""
+        client, uid = self._make_app_with_record(temp_db, "filtered_in")
+        resp = client.post(f"/api/v1/structures/{uid}/validate?decision=validated")
+        assert resp.status_code == 409, (
+            f"Expected 409 for invalid state transition, got {resp.status_code}"
+        )
+
+    def test_validate_nonexistent_returns_404(self, temp_db):
+        """不存在的 UUID 应返回 404。"""
+        client, _ = self._make_app_with_record(temp_db, "filtered_in")
+        resp = client.post("/api/v1/structures/no-such-uuid/validate?decision=validated")
+        assert resp.status_code == 404
+
+    def test_validate_dft_verified_returns_200(self, temp_db):
+        """dft_verified 状态的结构调 validate?decision=validated 应返回 200。"""
+        client, uid = self._make_app_with_record(temp_db, "dft_verified")
+        resp = client.post(f"/api/v1/structures/{uid}/validate?decision=validated")
+        assert resp.status_code == 200
+        assert resp.json()["decision"] == "validated"
+
+    def test_reject_filtered_in_returns_200(self, temp_db):
+        """filtered_in → rejected 仍合法，应返回 200。"""
+        client, uid = self._make_app_with_record(temp_db, "filtered_in")
+        resp = client.post(f"/api/v1/structures/{uid}/validate?decision=rejected")
+        assert resp.status_code == 200

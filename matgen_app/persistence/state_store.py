@@ -33,6 +33,16 @@ class StateStore:
                     metadata TEXT
                 )
             """)
+            # P1-1：幂等迁移——为已有 DB 添加 DFT 结果列
+            for col_sql in [
+                "ALTER TABLE structures ADD COLUMN dft_dg_h REAL",
+                "ALTER TABLE structures ADD COLUMN dft_energy REAL",
+                "ALTER TABLE structures ADD COLUMN dft_status TEXT",
+            ]:
+                try:
+                    cursor.execute(col_sql)
+                except Exception:
+                    pass  # 列已存在时忽略
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS tasks (
                     task_id TEXT PRIMARY KEY,
@@ -78,8 +88,10 @@ class StateStore:
             now = datetime.now().isoformat()
             cursor.execute("""
                 INSERT OR REPLACE INTO structures
-                (uuid, task_id, status, elements, poscar, predicted_dgH, target_dgH, error, decision, created_at, updated_at, metadata)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (uuid, task_id, status, elements, poscar, predicted_dgH, target_dgH,
+                 error, decision, created_at, updated_at, metadata,
+                 dft_dg_h, dft_energy, dft_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 uuid,
                 record.get("task_id", ""),
@@ -92,7 +104,10 @@ class StateStore:
                 record.get("decision"),
                 record.get("created_at", now),
                 record.get("updated_at", now),
-                json.dumps(record.get("metadata", {}), ensure_ascii=False)
+                json.dumps(record.get("metadata", {}), ensure_ascii=False),
+                record.get("dft_dg_h"),
+                record.get("dft_energy"),
+                record.get("dft_status"),
             ))
             conn.commit()
 
@@ -104,7 +119,8 @@ class StateStore:
             if row is None:
                 return None
             columns = ["uuid", "task_id", "status", "elements", "poscar", "predicted_dgH",
-                       "target_dgH", "error", "decision", "created_at", "updated_at", "metadata"]
+                       "target_dgH", "error", "decision", "created_at", "updated_at", "metadata",
+                       "dft_dg_h", "dft_energy", "dft_status"]
             record = dict(zip(columns, row))
             if record["metadata"]:
                 record["metadata"] = json.loads(record["metadata"])
@@ -116,7 +132,8 @@ class StateStore:
             cursor.execute("SELECT * FROM structures WHERE task_id = ?", (task_id,))
             rows = cursor.fetchall()
             columns = ["uuid", "task_id", "status", "elements", "poscar", "predicted_dgH",
-                       "target_dgH", "error", "decision", "created_at", "updated_at", "metadata"]
+                       "target_dgH", "error", "decision", "created_at", "updated_at", "metadata",
+                       "dft_dg_h", "dft_energy", "dft_status"]
             records = []
             for row in rows:
                 record = dict(zip(columns, row))
@@ -131,7 +148,8 @@ class StateStore:
             cursor.execute("SELECT * FROM structures WHERE status = ? LIMIT ?", (status, limit))
             rows = cursor.fetchall()
             columns = ["uuid", "task_id", "status", "elements", "poscar", "predicted_dgH",
-                       "target_dgH", "error", "decision", "created_at", "updated_at", "metadata"]
+                       "target_dgH", "error", "decision", "created_at", "updated_at", "metadata",
+                       "dft_dg_h", "dft_energy", "dft_status"]
             records = []
             for row in rows:
                 record = dict(zip(columns, row))
@@ -139,6 +157,23 @@ class StateStore:
                     record["metadata"] = json.loads(record["metadata"])
                 records.append(record)
             return records
+
+    def backfill_dft(self, uuid: str, dft_dg_h: float,
+                     dft_energy: Optional[float] = None,
+                     dft_status: str = "completed") -> bool:
+        """原子回填 DFT 结果并同步将状态从 filtered_in 改为 dft_verified。
+        只在 status='filtered_in' 时执行，避免并发 TOCTOU 竞态。
+        返回 True 表示找到 filtered_in 记录并成功更新，False 表示记录不存在或状态非 filtered_in。"""
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            now = datetime.now().isoformat()
+            cursor.execute("""
+                UPDATE structures
+                SET dft_dg_h=?, dft_energy=?, dft_status=?, status='dft_verified', updated_at=?
+                WHERE uuid=? AND status='filtered_in'
+            """, (dft_dg_h, dft_energy, dft_status, now, uuid))
+            conn.commit()
+            return cursor.rowcount > 0
 
     def record_state_change(self, structure_uuid: str, from_state: Optional[str],
                             to_state: str, reason: str = "") -> int:
@@ -173,7 +208,8 @@ class StateStore:
             )
             rows = cursor.fetchall()
             columns = ["uuid", "task_id", "status", "elements", "poscar", "predicted_dgH",
-                       "target_dgH", "error", "decision", "created_at", "updated_at", "metadata"]
+                       "target_dgH", "error", "decision", "created_at", "updated_at", "metadata",
+                       "dft_dg_h", "dft_energy", "dft_status"]
             records = []
             for row in rows:
                 record = dict(zip(columns, row))

@@ -206,6 +206,22 @@ class TaskOrchestrator:
     def get_structure_record(self, structure_id: str) -> Optional[Dict[str, Any]]:
         return self.state_store.get_record(structure_id)
 
+    def submit_dft_result(self, structure_id: str, dft_dg_h: float,
+                          dft_energy: Optional[float] = None) -> bool:
+        """将外部 DFT 计算结果原子回填到结构记录，并将状态从 filtered_in 推进到 dft_verified。
+        找不到记录或当前状态非 filtered_in 时返回 False，且不产生历史记录。"""
+        # backfill_dft 原子执行：仅在 status='filtered_in' 时写 DFT 字段 + 改状态，避免并发 TOCTOU
+        success = self.state_store.backfill_dft(
+            structure_id, dft_dg_h=dft_dg_h, dft_energy=dft_energy
+        )
+        if not success:
+            return False
+        # 写入成功后记录一条状态历史（不重复改状态，仅留审计轨迹）
+        self.state_store.record_state_change(
+            structure_id, "filtered_in", "dft_verified", reason="DFT backfill"
+        )
+        return True
+
     def update_structure_decision(self, structure_id: str, decision: str) -> bool:
         record = self.state_store.get_record(structure_id)
         if not record:
