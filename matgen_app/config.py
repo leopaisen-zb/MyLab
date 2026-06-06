@@ -38,6 +38,43 @@ DEFAULT_TOP_P          = 1.0
 DEFAULT_FILTER_LOW  = -1.00
 DEFAULT_FILTER_HIGH =  0.50
 
+# ── 模型注册表 ──────────────────────────────────────────────────────────────
+# 生成模型（结构生成 / POSCAR 生成）
+GEN_MODELS = [
+    {
+        "id": "qwen_lora",
+        "name": "Qwen2.5-7B + VASP LoRA",
+        "description": "基于 Qwen2.5-7B 微调的 LoRA 模型，通过 RAG 检索增强生成 VASP POSCAR 结构",
+        "type": "llm_lora",
+    },
+    {
+        "id": "fake",
+        "name": "Fake POSCAR (demo)",
+        "description": "随机生成合法 POSCAR 格式的占位结构，无需 GPU，用于演示和测试",
+        "type": "demo",
+    },
+]
+
+# 预测模型（ΔG_H 能量预测）
+PRED_MODELS = [
+    {
+        "id": "equiformer_v2",
+        "name": "Eqv2-Lite Equiformer",
+        "description": "等变图神经网络 Equiformer V2 轻量版，预测 ΔG_H 吸附能（eV）",
+        "type": "gnn",
+    },
+    {
+        "id": "toy_mlp",
+        "name": "Toy MLP (demo)",
+        "description": "基于组成特征的轻量 MLP 演示模型，无需大型 checkpoint，用于测试",
+        "type": "demo",
+    },
+]
+
+# 默认选用的模型 id（不传时的行为）
+DEFAULT_GEN_MODEL_ID  = "qwen_lora"
+DEFAULT_PRED_MODEL_ID = "equiformer_v2"
+
 SYSTEM_INSTRUCTION = (
     "You are a materials science expert. "
     "Given the physical and chemical properties of a hydrogen storage material "

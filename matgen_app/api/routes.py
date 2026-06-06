@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from api.schemas import GenerationRequest, GenerationResponse, TaskStatusResponse, StructureStatus
 from core.task_orchestrator import TaskOrchestrator
 import uuid
+import config as _cfg
 
 router = APIRouter()
 orchestrator = TaskOrchestrator()
@@ -49,6 +50,16 @@ async def validate_structure(structure_id: str, decision: str):
     if not result:
         raise HTTPException(status_code=404, detail="Structure not found")
     return {"structure_id": structure_id, "decision": decision}
+
+@router.get("/models")
+async def list_models():
+    """返回可用的生成模型与预测模型清单（从 config 注册表读取）。"""
+    return {
+        "gen_models": _cfg.GEN_MODELS,
+        "pred_models": _cfg.PRED_MODELS,
+        "default_gen_model_id": _cfg.DEFAULT_GEN_MODEL_ID,
+        "default_pred_model_id": _cfg.DEFAULT_PRED_MODEL_ID,
+    }
 
 @router.get("/health")
 async def health_check():

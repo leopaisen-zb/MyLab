@@ -51,9 +51,14 @@ with tab1:
                 )
                 if response.status_code == 200:
                     data = response.json()
-                    st.success(f"任务已创建: {data['task_id']}")
-                    st.session_state["current_task_id"] = data["task_id"]
-                    st.info("点击下方【预测结果】标签页查看进度")
+                    task_id = data["task_id"]
+                    st.success(f"任务已创建: {task_id}")
+                    st.session_state["current_task_id"] = task_id
+                    try:
+                        requests.post(f"{API_BASE}/tasks/{task_id}/execute", timeout=10)
+                    except Exception:
+                        pass
+                    st.info("任务已提交执行，点击下方【预测结果】标签页查看进度")
                 else:
                     st.error(f"API错误: {response.status_code}")
             except requests.exceptions.ConnectionError:

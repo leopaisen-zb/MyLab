@@ -97,8 +97,15 @@ class EQAdapter(BaseAdapter):
 
         return out.item()
 
-    def predict(self, structure_data: Dict[str, Any]) -> float:
-        return self.forward(structure_data)
+    def predict(self, poscar_text: str) -> float:
+        """Predict ΔG_H from raw POSCAR text using the real StandaloneEquiformerV2."""
+        try:
+            from backend.eq_predict import predict as eq_predict_real
+            result = eq_predict_real(poscar_text)
+            return result["dg_h"]
+        except Exception as e:
+            print(f"[EQAdapter] backend.eq_predict failed ({e}), falling back to toy model")
+            return self.forward({"composition": "", "num_sites": 20, "parsed": True})
 
     def predict_batch(self, structures: list) -> list:
         """

@@ -74,7 +74,19 @@ class HEAGenAdapter(BaseAdapter):
 
     def forward(self, input_data: Dict[str, Any]) -> str:
         elements = input_data.get("elements", ["Ir", "Pd", "Pt", "Rh", "Ru"])
-        return generate_fake_poscar(elements, num_atoms=20)
+        target_dgH = input_data.get("target_dgH", -0.5)
+        prompt = (
+            f"Generate a high-entropy alloy surface structure with elements "
+            f"{', '.join(elements)} for hydrogen evolution reaction (HER) "
+            f"with target ΔG_H = {target_dgH:.2f} eV. "
+            "Output only the VASP POSCAR format."
+        )
+        try:
+            from backend.rag_gen import generate
+            return generate(prompt, use_rag=True)
+        except Exception as e:
+            print(f"[HEAGenAdapter] backend.rag_gen failed ({e}), falling back to fake POSCAR")
+            return generate_fake_poscar(elements, num_atoms=20)
 
     def generate_batch(self, target_dgH: float, elements: List[str], batch_size: int = 10) -> List[Dict[str, Any]]:
         results = []

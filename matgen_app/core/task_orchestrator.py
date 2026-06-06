@@ -1,14 +1,16 @@
 # core/task_orchestrator.py
 import uuid
+import random
 import threading
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from core.state_machine import StructureState, StateTransition
 from core.checkpoint import CheckpointManager
-from adapters.hea_gen_adapter import HEAGenAdapter
+from adapters.hea_gen_adapter import HEAGenAdapter, generate_fake_poscar
 from adapters.eq_adapter import EQAdapter
 from persistence.workspace import Workspace
 from persistence.state_store import StateStore
+import config as _cfg
 
 class TaskOrchestrator:
     def __init__(self):
@@ -35,6 +37,65 @@ class TaskOrchestrator:
             }
             self.checkpointer.save_checkpoint(task_id, self.tasks[task_id])
 
+    # ── 模型 id 校验辅助 ─────────────────────────────────────────────────────
+
+    @staticmethod
+    def _resolve_gen_model_id(gen_model_id: Optional[str]) -> str:
+        """校验 gen_model_id，未知时回退到默认。"""
+        valid_ids = {e["id"] for e in _cfg.GEN_MODELS}
+        if gen_model_id and gen_model_id in valid_ids:
+            return gen_model_id
+        if gen_model_id and gen_model_id not in valid_ids:
+            print(f"[TaskOrchestrator] 未知 gen_model_id='{gen_model_id}'，回退到默认 '{_cfg.DEFAULT_GEN_MODEL_ID}'")
+        return _cfg.DEFAULT_GEN_MODEL_ID
+
+    @staticmethod
+    def _resolve_pred_model_id(pred_model_id: Optional[str]) -> str:
+        """校验 pred_model_id，未知时回退到默认。"""
+        valid_ids = {e["id"] for e in _cfg.PRED_MODELS}
+        if pred_model_id and pred_model_id in valid_ids:
+            return pred_model_id
+        if pred_model_id and pred_model_id not in valid_ids:
+            print(f"[TaskOrchestrator] 未知 pred_model_id='{pred_model_id}'，回退到默认 '{_cfg.DEFAULT_PRED_MODEL_ID}'")
+        return _cfg.DEFAULT_PRED_MODEL_ID
+
+    def _generate_batch_with_model(
+        self,
+        gen_model_id: str,
+        target_dgH: float,
+        elements: List[str],
+        batch_size: int,
+    ) -> List[Dict[str, Any]]:
+        """根据 gen_model_id 选择生成方式，产出与 HEAGenAdapter.generate_batch 相同格式。"""
+        if gen_model_id == "fake":
+            # 强制走本地 fake 生成器，不尝试加载大模型
+            results = []
+            for _ in range(batch_size):
+                poscar = generate_fake_poscar(elements, num_atoms=20)
+                results.append({
+                    "elements": "".join([f"{el}{random.randint(1, 5)}" for el in elements[:3]]),
+                    "poscar": poscar,
+                    "target_dgH": target_dgH,
+                })
+            return results
+        else:
+            # qwen_lora 或其他：走 HEAGenAdapter（内部有 fallback）
+            return self.hea_gen_adapter.generate_batch(
+                target_dgH=target_dgH,
+                elements=elements,
+                batch_size=batch_size,
+            )
+
+    def _predict_with_model(self, pred_model_id: str, poscar_text: str, parsed: dict = None) -> float:
+        """根据 pred_model_id 选择预测方式。"""
+        if pred_model_id == "toy_mlp":
+            # 强制走 toy MLP（EQAdapter.forward），使用真实解析特征
+            features = {**parsed, "parsed": True} if parsed else {"composition": "", "num_sites": 20, "parsed": True}
+            return self.eq_adapter.forward(features)
+        else:
+            # equiformer_v2 或其他：走 EQAdapter.predict（内部有 fallback）
+            return self.eq_adapter.predict(poscar_text)
+
     def execute_task(self, task_id: str):
         task = self.tasks.get(task_id)
         if not task:
@@ -44,11 +105,21 @@ class TaskOrchestrator:
         config = task["config"]
         batch_size = config.get("batch_size", 10)
 
+        # 解析模型选择（未知 id 自动回退）
+        gen_model_id  = self._resolve_gen_model_id(config.get("gen_model_id"))
+        pred_model_id = self._resolve_pred_model_id(config.get("pred_model_id"))
+
+        if config.get("target_dgH") is None:
+            task["status"] = "failed"
+            task["error"] = "target_dgH is required"
+            return
+
         try:
-            structures = self.hea_gen_adapter.generate_batch(
+            structures = self._generate_batch_with_model(
+                gen_model_id=gen_model_id,
                 target_dgH=config.get("target_dgH"),
                 elements=config.get("elements", ["Ir", "Pd", "Pt", "Rh", "Ru"]),
-                batch_size=batch_size
+                batch_size=batch_size,
             )
 
             task["stats"]["total"] = len(structures)
@@ -77,8 +148,9 @@ class TaskOrchestrator:
                         continue
 
                     struct_record["parsed_structure"] = parsed
-                    predicted = self.eq_adapter.predict(parsed)
+                    predicted = self._predict_with_model(pred_model_id, struct_data["poscar"], parsed)
                     struct_record["predicted_dgH"] = predicted
+                    self.state_store.save_record(struct_id, struct_record)
                     self._transition_state(struct_id, StructureState.PREDICTED, task)
 
                     tolerance = config.get("tolerance", 0.05)
@@ -108,6 +180,9 @@ class TaskOrchestrator:
                 record["status"] = new_state.value
                 record["updated_at"] = datetime.now().isoformat()
                 self.state_store.save_record(struct_id, record)
+                self.state_store.record_state_change(
+                    struct_id, current.value, new_state.value
+                )
                 task["structures"][struct_id] = record
 
     def get_task_status(self, task_id: str) -> Optional[Dict[str, Any]]:

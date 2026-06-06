@@ -48,6 +48,20 @@ class StateStore:
             cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_status ON structures(status)
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS state_history (
+                    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                    structure_uuid TEXT NOT NULL,
+                    from_state   TEXT,
+                    to_state     TEXT NOT NULL,
+                    changed_at   TEXT NOT NULL,
+                    reason       TEXT NOT NULL DEFAULT '',
+                    FOREIGN KEY (structure_uuid) REFERENCES structures(uuid)
+                )
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_history_uuid ON state_history(structure_uuid)
+            """)
             conn.commit()
 
     @contextmanager
@@ -125,6 +139,57 @@ class StateStore:
                     record["metadata"] = json.loads(record["metadata"])
                 records.append(record)
             return records
+
+    def record_state_change(self, structure_uuid: str, from_state: Optional[str],
+                            to_state: str, reason: str = "") -> int:
+        """Record a state transition for traceability. Returns the new history row id."""
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO state_history (structure_uuid, from_state, to_state, changed_at, reason)
+                VALUES (?, ?, ?, ?, ?)
+            """, (structure_uuid, from_state or "", to_state, datetime.now().isoformat(), reason))
+            conn.commit()
+            return cursor.lastrowid
+
+    def get_state_history(self, structure_uuid: str) -> List[Dict[str, Any]]:
+        """Return transition history for a structure, newest first."""
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT structure_uuid, from_state, to_state, changed_at, reason "
+                "FROM state_history WHERE structure_uuid = ? ORDER BY id DESC",
+                (structure_uuid,),
+            )
+            columns = ["structure_uuid", "from_state", "to_state", "changed_at", "reason"]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    def export_validated(self) -> List[Dict[str, Any]]:
+        """Return records that passed human validation (flywheel ⑥ feedback export)."""
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM structures WHERE status IN ('validated', 'exported_for_training')"
+            )
+            rows = cursor.fetchall()
+            columns = ["uuid", "task_id", "status", "elements", "poscar", "predicted_dgH",
+                       "target_dgH", "error", "decision", "created_at", "updated_at", "metadata"]
+            records = []
+            for row in rows:
+                record = dict(zip(columns, row))
+                if record["metadata"]:
+                    record["metadata"] = json.loads(record["metadata"])
+                records.append(record)
+            return records
+
+    def get_state_distribution(self) -> Dict[str, int]:
+        """Return {state: count} across all structures (flywheel monitoring)."""
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT status, COUNT(*) FROM structures GROUP BY status"
+            )
+            return {row[0]: row[1] for row in cursor.fetchall()}
 
     def save_task(self, task_id: str, status: str, config: dict):
         with self._get_conn() as conn:

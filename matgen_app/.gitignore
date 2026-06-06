@@ -1,0 +1,17 @@
+# Runtime artifacts
+workspace/
+.streamlit/
+*.db
+*.db-journal
+
+# Debug / scratch output
+*_output.txt
+debug_output.txt
+eq_test.txt
+load_*.txt
+merge_output.txt
+gen_*_output.txt
+
+# Python
+__pycache__/
+*.pyc

@@ -182,6 +182,94 @@ class TestStateStoreTaskMethods:
         assert result is None
 
 
+class TestStateStoreStateHistory:
+    """Test state transition history (flywheel traceability)."""
+
+    def test_state_history_table_created(self, temp_db):
+        """state_history table should be created on init."""
+        StateStore(db_path=temp_db)
+        conn = sqlite3.connect(temp_db)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='state_history'"
+        )
+        row = cursor.fetchone()
+        conn.close()
+        assert row is not None
+
+    def test_record_and_get_state_history(self, temp_db):
+        """Record transitions and retrieve them newest-first."""
+        store = StateStore(db_path=temp_db)
+        store.save_record("s1", {
+            "task_id": "t1", "status": "generated", "elements": "Ir2", "poscar": "",
+        })
+        store.record_state_change("s1", "generated", "predicted", "eq predicted")
+        store.record_state_change("s1", "predicted", "filtered_in", "within tolerance")
+
+        history = store.get_state_history("s1")
+        assert len(history) == 2
+        # newest first
+        assert history[0]["to_state"] == "filtered_in"
+        assert history[0]["from_state"] == "predicted"
+        assert history[0]["reason"] == "within tolerance"
+
+    def test_get_state_history_empty(self, temp_db):
+        """No history returns empty list."""
+        store = StateStore(db_path=temp_db)
+        assert store.get_state_history("nope") == []
+
+
+class TestStateStoreExportValidated:
+    """Test export of validated structures for training feedback (flywheel ⑥)."""
+
+    def test_export_validated_returns_only_validated(self, temp_db):
+        """Only validated / exported_for_training records are exported."""
+        store = StateStore(db_path=temp_db)
+        store.save_record("v1", {
+            "task_id": "t1", "status": "validated", "elements": "Ir2",
+            "poscar": "P1", "predicted_dgH": -0.5,
+        })
+        store.save_record("v2", {
+            "task_id": "t1", "status": "exported_for_training", "elements": "Pd2",
+            "poscar": "P2", "predicted_dgH": -0.4,
+        })
+        store.save_record("f1", {
+            "task_id": "t1", "status": "filtered_out", "elements": "Pt2", "poscar": "P3",
+        })
+
+        exported = store.export_validated()
+        uuids = {r["uuid"] for r in exported}
+        assert uuids == {"v1", "v2"}
+
+    def test_export_validated_empty(self, temp_db):
+        """No validated records returns empty list."""
+        store = StateStore(db_path=temp_db)
+        assert store.export_validated() == []
+
+
+class TestStateStoreStateDistribution:
+    """Test state distribution counts (flywheel monitoring)."""
+
+    def test_get_state_distribution(self, temp_db):
+        store = StateStore(db_path=temp_db)
+        for i in range(3):
+            store.save_record(f"g{i}", {
+                "task_id": "t1", "status": "generated", "elements": "x", "poscar": "",
+            })
+        for i in range(2):
+            store.save_record(f"p{i}", {
+                "task_id": "t1", "status": "predicted", "elements": "x", "poscar": "",
+            })
+
+        dist = store.get_state_distribution()
+        assert dist["generated"] == 3
+        assert dist["predicted"] == 2
+
+    def test_get_state_distribution_empty(self, temp_db):
+        store = StateStore(db_path=temp_db)
+        assert store.get_state_distribution() == {}
+
+
 class TestStateStoreConnectionSafety:
     """Test connection management and safety."""
 
