@@ -9,6 +9,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+from labels import state_label, localize_record, localize_distribution
+
 API_BASE = os.environ.get("MATGEN_API_URL", "http://localhost:8000/api/v1")
 
 st.set_page_config(
@@ -86,8 +88,8 @@ with tab2:
                 if status["results"]:
                     st.subheader("结构详情")
                     for r in status["results"][:10]:
-                        with st.expander(f"Structure {r['uuid'][:8]}... - {r['status']}"):
-                            st.json(r)
+                        with st.expander(f"结构 {r['uuid'][:8]}... - {state_label(r['status'])}"):
+                            st.json(localize_record(r))
             else:
                 st.error(f"获取状态失败: {resp.status_code}")
         except Exception as e:
@@ -99,7 +101,7 @@ with tab3:
     st.header("🔍 专家审查")
     st.info(
         "专家审查功能需要在任务完成且有筛选通过的结构后可用。"
-        "⚠️ 专家审查前须先在【⚗️ DFT 回填】完成 DFT 录入，结构状态需为 dft_verified。"
+        "⚠️ 专家审查前须先在【⚗️ DFT 回填】完成 DFT 录入，结构状态需为「DFT已验证」(dft_verified)。"
     )
     structure_id = st.text_input("结构 UUID")
     col1, col2 = st.columns(2)
@@ -126,7 +128,7 @@ with tab4:
     st.header("⚗️ DFT 结果回填")
     st.info(
         "将外部 DFT 计算结果（ΔG_H / 总能量）回填入系统，"
-        "结构状态将从 **filtered_in** 推进至 **dft_verified**。"
+        "结构状态将从 **初筛通过**(filtered_in) 推进至 **DFT已验证**(dft_verified)。"
     )
 
     st.subheader("单条回填")
@@ -150,11 +152,11 @@ with tab4:
                     timeout=10
                 )
                 if resp.status_code == 200:
-                    st.success(f"回填成功，状态已更新为 dft_verified（UUID: {dft_uuid[:8]}...）")
+                    st.success(f"回填成功，状态已更新为「DFT已验证」（UUID: {dft_uuid[:8]}...）")
                 elif resp.status_code == 404:
                     st.error("结构不存在，请检查 UUID")
                 elif resp.status_code == 409:
-                    st.error("状态转移失败：结构当前状态不是 filtered_in")
+                    st.error("状态转移失败：结构当前状态不是「初筛通过」(filtered_in)")
                 else:
                     st.error(f"API 错误: {resp.status_code} — {resp.text}")
             except requests.exceptions.ConnectionError:
@@ -226,9 +228,9 @@ with tab6:
                 # st.metric 展示
                 state_cols = st.columns(min(len(dist), 5))
                 for i, (state, count) in enumerate(sorted(dist.items())):
-                    state_cols[i % len(state_cols)].metric(state, count)
-                # 柱状图
-                st.bar_chart(dist)
+                    state_cols[i % len(state_cols)].metric(state_label(state), count)
+                # 柱状图（中文状态标签）
+                st.bar_chart(localize_distribution(dist))
             else:
                 st.info("数据库暂无结构记录（尚未执行生成任务）")
         else:
