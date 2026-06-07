@@ -35,10 +35,10 @@ with tab1:
         tolerance = st.number_input("容差范围 (eV)", value=0.05, step=0.01, format="%.2f")
         batch_size = st.slider("生成数量", 5, 100, 10)
     with col2:
-        elements = st.multiselect(
-            "元素种类",
-            options=["Ir", "Pd", "Pt", "Rh", "Ru", "Fe", "Co", "Ni"],
-            default=["Ir", "Pd", "Pt", "Rh", "Ru"]
+        st.markdown("**逆向设计输入说明**")
+        st.info(
+            "本系统以目标性质（ΔG_H）为输入进行逆向设计，"
+            "**元素种类与配比由模型自主生成**，无需也不应由用户指定。"
         )
 
     if st.button("🚀 开始生成", type="primary"):
@@ -49,7 +49,6 @@ with tab1:
                     json={
                         "target_dgH": target_dgH,
                         "tolerance": tolerance,
-                        "elements": elements,
                         "batch_size": batch_size
                     },
                     timeout=30

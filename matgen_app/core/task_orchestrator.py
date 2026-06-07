@@ -65,17 +65,19 @@ class TaskOrchestrator:
         self,
         gen_model_id: str,
         target_dgH: float,
-        elements: List[str],
         batch_size: int,
     ) -> List[Dict[str, Any]]:
-        """根据 gen_model_id 选择生成方式，产出与 HEAGenAdapter.generate_batch 相同格式。"""
+        """根据 gen_model_id 选择生成方式，产出与 HEAGenAdapter.generate_batch 相同格式。
+
+        逆向设计：仅以 target_dgH 为条件，元素种类与配比由生成器自主产出。
+        """
         if gen_model_id == "fake":
             # 强制走本地 fake 生成器，不尝试加载大模型
             results = []
             for _ in range(batch_size):
-                poscar = generate_fake_poscar(elements, num_atoms=20)
+                poscar = generate_fake_poscar(num_atoms=20, target_dgH=target_dgH)
                 results.append({
-                    "elements": composition_from_poscar(poscar) or "".join(elements),
+                    "elements": composition_from_poscar(poscar),
                     "poscar": poscar,
                     "target_dgH": target_dgH,
                 })
@@ -84,7 +86,6 @@ class TaskOrchestrator:
             # qwen_lora 或其他：走 HEAGenAdapter（内部有 fallback）
             return self.hea_gen_adapter.generate_batch(
                 target_dgH=target_dgH,
-                elements=elements,
                 batch_size=batch_size,
             )
 
@@ -124,7 +125,6 @@ class TaskOrchestrator:
             structures = self._generate_batch_with_model(
                 gen_model_id=gen_model_id,
                 target_dgH=config.get("target_dgH"),
-                elements=config.get("elements", ["Ir", "Pd", "Pt", "Rh", "Ru"]),
                 batch_size=batch_size,
             )
 

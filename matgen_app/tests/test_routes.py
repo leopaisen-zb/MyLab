@@ -134,7 +134,8 @@ class TestAPISchemas:
         req = GenerationRequest(target_dgH=-0.5)
         assert req.tolerance == 0.05
         assert req.batch_size == 10
-        assert req.elements == ["Ir", "Pd", "Pt", "Rh", "Ru"]
+        # 逆向设计：请求体不含 elements（元素由模型生成，非输入）
+        assert not hasattr(req, "elements")
 
     def test_generation_request_batch_size_bounds(self):
         """Test GenerationRequest batch_size bounds."""

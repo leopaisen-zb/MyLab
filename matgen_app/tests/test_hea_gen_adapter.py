@@ -41,9 +41,7 @@ class TestGenerateBatchElementsConsistency:
         import os
         os.environ["MATGEN_DEMO"] = "0"  # 强制走 fallback 假生成器(forward 内 backend 不可用时)
         adapter = HEAGenAdapter()
-        batch = adapter.generate_batch(target_dgH=-0.5,
-                                       elements=["Ir", "Pd", "Pt", "Rh", "Ru"],
-                                       batch_size=3)
+        batch = adapter.generate_batch(target_dgH=-0.5, batch_size=3)
         for item in batch:
             expected = composition_from_poscar(item["poscar"])
             assert item["elements"] == expected
@@ -121,20 +119,14 @@ class TestHEAGenAdapter:
         assert adapter.initialize() is True
 
     def test_validate_input_valid(self):
-        """Valid input should pass validation."""
+        """逆向设计：以目标性质为输入即合法。"""
         adapter = HEAGenAdapter()
-        valid_input = {"elements": ["Ir", "Pd", "Pt"]}
-        assert adapter.validate_input(valid_input) is True
+        assert adapter.validate_input({"target_dgH": -0.5}) is True
 
-    def test_validate_input_empty_elements(self):
-        """Empty elements list should fail."""
+    def test_validate_input_missing_target(self):
+        """缺少 target_dgH 应失败。"""
         adapter = HEAGenAdapter()
-        assert adapter.validate_input({"elements": []}) is False
-
-    def test_validate_input_invalid_element(self):
-        """Invalid element symbol should fail."""
-        adapter = HEAGenAdapter()
-        assert adapter.validate_input({"elements": ["Xx", "Yy"]}) is False
+        assert adapter.validate_input({}) is False
 
     def test_validate_input_not_dict(self):
         """Non-dict input should fail."""
@@ -145,28 +137,20 @@ class TestHEAGenAdapter:
     def test_forward_returns_poscar_string(self):
         """forward() should return POSCAR string."""
         adapter = HEAGenAdapter()
-        result = adapter.forward({"elements": ["Ir", "Pd", "Pt"]})
+        result = adapter.forward({"target_dgH": -0.5})
         assert isinstance(result, str)
         assert "Cartesian" in result
 
     def test_generate_batch_returns_correct_count(self):
         """generate_batch should return batch_size structures."""
         adapter = HEAGenAdapter()
-        results = adapter.generate_batch(
-            target_dgH=-0.5,
-            elements=["Ir", "Pd", "Pt"],
-            batch_size=20
-        )
+        results = adapter.generate_batch(target_dgH=-0.5, batch_size=20)
         assert len(results) == 20
 
     def test_generate_batch_results_have_required_fields(self):
         """Each result should have elements, poscar, and target_dgH."""
         adapter = HEAGenAdapter()
-        results = adapter.generate_batch(
-            target_dgH=-0.5,
-            elements=["Ir", "Pd"],
-            batch_size=5
-        )
+        results = adapter.generate_batch(target_dgH=-0.5, batch_size=5)
         for r in results:
             assert "elements" in r
             assert "poscar" in r

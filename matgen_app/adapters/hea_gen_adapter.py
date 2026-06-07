@@ -19,7 +19,17 @@ except ImportError:
 
 ELEMENT_SYMBOLS = ["Ir", "Pd", "Pt", "Rh", "Ru", "Fe", "Co", "Ni", "Cu", "Zn"]
 
-def generate_fake_poscar(elements: List[str], num_atoms: int = 20) -> str:
+def generate_fake_poscar(elements: List[str] = None, num_atoms: int = 20,
+                         target_dgH: float = None) -> str:
+    """生成一个候选 HEA POSCAR。
+
+    逆向设计设定下，元素种类与配比是**模型生成的输出**，而非用户输入：
+    生产路径不传 elements，由系统从 HEA 元素池中自主采样（每次不同），
+    以保证"组分由系统生成"而非"组分进=组分出"。elements 参数仅为向后兼容/测试保留。
+    """
+    if not elements:
+        k = random.randint(4, 6)
+        elements = random.sample(ELEMENT_SYMBOLS, k)
     # Distribute num_atoms deterministically across elements (each gets at least 1)
     n_elements = len(elements)
     base = num_atoms // n_elements
@@ -102,35 +112,31 @@ class HEAGenAdapter(BaseAdapter):
             return False
 
     def validate_input(self, input_data: Dict[str, Any]) -> bool:
+        # 逆向设计：仅以目标性质为输入，不接受元素组分输入
         if not isinstance(input_data, dict):
             return False
-        elements = input_data.get("elements", [])
-        if not elements or not all(el in ELEMENT_SYMBOLS for el in elements):
-            return False
-        return True
+        return "target_dgH" in input_data
 
     def forward(self, input_data: Dict[str, Any]) -> str:
-        elements = input_data.get("elements", ["Ir", "Pd", "Pt", "Rh", "Ru"])
         target_dgH = input_data.get("target_dgH", -0.5)
         prompt = (
-            f"Generate a high-entropy alloy surface structure with elements "
-            f"{', '.join(elements)} for hydrogen evolution reaction (HER) "
-            f"with target ΔG_H = {target_dgH:.2f} eV. "
-            "Output only the VASP POSCAR format."
+            f"Target hydrogen adsorption free energy ΔG_H = {target_dgH:.2f} eV. "
+            "Given this target property, generate the corresponding high-entropy alloy "
+            "surface structure in VASP POSCAR format. Output only the POSCAR."
         )
         try:
             from backend.rag_gen import generate
             return generate(prompt, use_rag=True)
         except Exception as e:
             print(f"[HEAGenAdapter] backend.rag_gen failed ({e}), falling back to fake POSCAR")
-            return generate_fake_poscar(elements, num_atoms=20)
+            return generate_fake_poscar(num_atoms=20, target_dgH=target_dgH)
 
-    def generate_batch(self, target_dgH: float, elements: List[str], batch_size: int = 10) -> List[Dict[str, Any]]:
+    def generate_batch(self, target_dgH: float, batch_size: int = 10) -> List[Dict[str, Any]]:
         results = []
         for _ in range(batch_size):
-            poscar = self.forward({"elements": elements, "target_dgH": target_dgH})
+            poscar = self.forward({"target_dgH": target_dgH})
             results.append({
-                "elements": composition_from_poscar(poscar) or "".join(elements),
+                "elements": composition_from_poscar(poscar),
                 "poscar": poscar,
                 "target_dgH": target_dgH
             })

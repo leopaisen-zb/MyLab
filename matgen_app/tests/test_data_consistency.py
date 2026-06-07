@@ -30,12 +30,15 @@ def _total_atoms(comp: str) -> int:
     return sum(int(n) for n in re.findall(r"\d+", comp))
 
 
-def _run_pipeline(elements, batch_size=5):
-    """用隔离库跑一遍真实编排流水线（fake 生成 + toy_mlp 预测），返回结构记录列表。"""
+def _run_pipeline(batch_size=5):
+    """用隔离库跑一遍真实编排流水线（fake 生成 + toy_mlp 预测），返回结构记录列表。
+
+    逆向设计：仅以 target_dgH 为输入，元素组分由系统生成（不作为输入）。
+    """
     orch = TaskOrchestrator()
     orch.state_store = StateStore(db_path=os.path.join(tempfile.mkdtemp(), "consistency.db"))
     orch.create_task("c1", {
-        "target_dgH": -0.5, "tolerance": 2.0, "elements": elements,
+        "target_dgH": -0.5, "tolerance": 2.0,
         "batch_size": batch_size, "gen_model_id": "fake", "pred_model_id": "toy_mlp",
     })
     orch.execute_task("c1")
@@ -46,31 +49,38 @@ class TestElementsPoscarConsistency:
     """INV: 结构记录的 elements 字段必须 == 其 POSCAR 真实组成（曾经的占位串 bug）。"""
 
     def test_elements_equals_poscar_composition(self):
-        records = _run_pipeline(["Ir", "Pd", "Pt", "Rh", "Ru"])
+        records = _run_pipeline()
         assert records
         for r in records:
             assert r["elements"] == composition_from_poscar(r["poscar"]), \
                 f"elements {r['elements']} 与 POSCAR 组成不符"
 
     def test_elements_atom_count_matches_poscar(self):
-        records = _run_pipeline(["Ir", "Pd", "Pt", "Rh", "Ru"])
+        records = _run_pipeline()
         for r in records:
             assert _total_atoms(r["elements"]) == _total_atoms(composition_from_poscar(r["poscar"]))
 
-    def test_all_requested_elements_present(self):
-        """fake 生成应包含全部请求元素（曾因 elements[:3] 只取前3个而丢失）。"""
-        els = ["Ir", "Pd", "Pt", "Rh", "Ru"]
-        records = _run_pipeline(els)
+    def test_composition_generated_not_echoed(self):
+        """INV(逆向设计): 元素组分由系统生成——必须来自 HEA 元素池，且跨候选有变化，
+        而非把某个固定输入"组分进=组分出"地回显（这正是导师质疑的来源）。"""
+        from adapters.hea_gen_adapter import ELEMENT_SYMBOLS
+        records = _run_pipeline(batch_size=12)
+        assert records
+        seen = set()
         for r in records:
-            for el in els:
-                assert el in r["elements"], f"{el} 缺失于 {r['elements']}"
+            els = set(re.findall(r"[A-Z][a-z]?", r["elements"]))
+            assert els, f"组分为空: {r['elements']}"
+            assert els <= set(ELEMENT_SYMBOLS), f"{els} 含元素池之外的元素"
+            seen.add(frozenset(els))
+        # 跨候选至少出现两种不同组分 → 证明是"生成"而非固定回显
+        assert len(seen) >= 2, "全批次组分完全相同，疑似回显固定输入而非生成"
 
 
 class TestPredictionNotPlaceholder:
     """INV: 预测值必须存在且有限，不是 None/占位/写死常数。"""
 
     def test_predicted_dgh_is_finite_number(self):
-        records = _run_pipeline(["Ir", "Pd", "Pt", "Rh", "Ru"])
+        records = _run_pipeline()
         predicted = [r for r in records if r.get("status") in ("predicted", "filtered_in", "filtered_out")]
         assert predicted, "应有结构完成预测"
         for r in predicted:
