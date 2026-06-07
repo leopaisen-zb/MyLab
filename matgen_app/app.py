@@ -29,17 +29,9 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 
 with tab1:
     st.header("结构生成参数配置")
-    col1, col2 = st.columns(2)
-    with col1:
-        target_dgH = st.number_input("目标 ΔG_H (eV)", value=-0.50, step=0.01, format="%.2f")
-        tolerance = st.number_input("容差范围 (eV)", value=0.05, step=0.01, format="%.2f")
-        batch_size = st.slider("生成数量", 5, 100, 10)
-    with col2:
-        st.markdown("**逆向设计输入说明**")
-        st.info(
-            "本系统以目标性质（ΔG_H）为输入进行逆向设计，"
-            "**元素种类与配比由模型自主生成**，无需也不应由用户指定。"
-        )
+    target_dgH = st.number_input("目标 ΔG_H (eV)", value=-0.50, step=0.01, format="%.2f")
+    tolerance = st.number_input("容差范围 (eV)", value=0.05, step=0.01, format="%.2f")
+    batch_size = st.slider("生成数量", 5, 100, 10)
 
     if st.button("🚀 开始生成", type="primary"):
         with st.spinner("正在连接任务编排层..."):
@@ -205,14 +197,14 @@ with tab6:
     ```
     | 环节 | 动作 | 输出状态 |
     |------|------|----------|
-    | ① 生成 | HEA-Gen / fake 生成 POSCAR | `generated` |
-    | ② 预测 | Eqv2-Lite / toy_mlp 预测 ΔG_H | `predicted` |
-    | ③ 初筛 | ΔG_H 容差过滤 | `filtered_in` / `filtered_out` |
-    | ④ DFT 回填 | 外部 DFT 结果写入 | `dft_verified` |
-    | ⑤ 专家确认 | 人工审查质量 | `validated` / `rejected` |
-    | ⑥ 导出 | export_validated() 取数据 | — |
-    | ⑦ 数据集回灌 | 追加训练集 + 重建近邻索引 | `exported_for_training` |
-    | ⑧ 重训注册 | demo/真实 retrain + 版本号 | 新版本 v{n} |
+    | ① 生成 | HEA-Gen 生成候选结构 | 已生成 |
+    | ② 预测 | Eqv2-Lite 预测 ΔG_H | 已预测 |
+    | ③ 初筛 | ΔG_H 容差过滤 | 初筛通过 / 初筛淘汰 |
+    | ④ DFT 回填 | 外部 DFT 结果写入 | DFT已验证 |
+    | ⑤ 专家确认 | 人工审查质量 | 专家确认 / 已驳回 |
+    | ⑥ 导出 | 取出已确认的高质量结构 | — |
+    | ⑦ 数据集回灌 | 追加训练集 + 重建近邻索引 | 已导出训练 |
+    | ⑧ 重训注册 | 重训模型并注册新版本 | 新版本 v{n} |
     """)
 
     st.divider()
