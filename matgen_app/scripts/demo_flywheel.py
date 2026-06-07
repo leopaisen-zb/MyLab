@@ -4,7 +4,7 @@
 用途：
     答辩现场一键演示飞轮 8 环节的完整闭环，无需启动 API 服务，
     直接调用各业务层（Orchestrator / StateStore / ModelVersionRegistry / run_retrain）。
-    全程使用 demo 模式（fake 生成 + toy_mlp 预测），不加载大模型，30 秒内跑通。
+    全程使用 MATGEN_DEMO=1 轻量模式（fake 生成 + toy MLP 预测），不加载大模型，30 秒内跑通。
 
 运行方式：
     MATGEN_DEMO=1 python scripts/demo_flywheel.py
@@ -98,9 +98,9 @@ def run_demo(
     orch.model_registry  = registry
 
     # ══════════════════════════════════════════════════════════════════════════
-    # ① 创建任务 + ② 执行任务（fake 生成 + toy_mlp 预测 + ③ 初筛）
+    # ① 创建任务 + ② 执行任务（MATGEN_DEMO=1 轻量模式 + ③ 初筛）
     # ══════════════════════════════════════════════════════════════════════════
-    _section("① 创建生成任务 + ② 执行（fake 生成 / toy_mlp 预测 / ③ 初筛）")
+    _section("① 创建生成任务 + ② 执行（MATGEN_DEMO 轻量模式 / ③ 初筛）")
 
     task_id = str(uuid.uuid4())
     task_config = {
@@ -108,8 +108,7 @@ def run_demo(
         "tolerance": 0.80,        # 宽容差，确保 demo 有 filtered_in 结构
         "elements": ["Ir", "Pd", "Pt", "Rh", "Ru"],
         "batch_size": 5,
-        "gen_model_id": "fake",
-        "pred_model_id": "toy_mlp",
+        # gen_model_id / pred_model_id 不传：MATGEN_DEMO=1 已驱动轻量执行
     }
     orch.create_task(task_id, task_config)
     print(f"  [①] 任务已创建: task_id = {task_id[:8]}...")

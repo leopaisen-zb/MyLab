@@ -31,15 +31,16 @@ def _total_atoms(comp: str) -> int:
 
 
 def _run_pipeline(batch_size=5):
-    """用隔离库跑一遍真实编排流水线（fake 生成 + toy_mlp 预测），返回结构记录列表。
+    """用隔离库跑一遍真实编排流水线（MATGEN_DEMO=1 模式），返回结构记录列表。
 
     逆向设计：仅以 target_dgH 为输入，元素组分由系统生成（不作为输入）。
+    轻量执行由模块顶部的 MATGEN_DEMO=1 环境变量驱动，与 model_id 无关。
     """
     orch = TaskOrchestrator()
     orch.state_store = StateStore(db_path=os.path.join(tempfile.mkdtemp(), "consistency.db"))
     orch.create_task("c1", {
         "target_dgH": -0.5, "tolerance": 2.0,
-        "batch_size": batch_size, "gen_model_id": "fake", "pred_model_id": "toy_mlp",
+        "batch_size": batch_size,
     })
     orch.execute_task("c1")
     return list(orch.tasks["c1"]["structures"].values())

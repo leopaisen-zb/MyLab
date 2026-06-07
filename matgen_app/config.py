@@ -40,18 +40,13 @@ DEFAULT_FILTER_HIGH =  0.50
 
 # ── 模型注册表 ──────────────────────────────────────────────────────────────
 # 生成模型（结构生成 / POSCAR 生成）
+# 注意：轻量执行由 MATGEN_DEMO=1 环境变量驱动，不再用 demo 模型 id 区分
 GEN_MODELS = [
     {
         "id": "qwen_lora",
         "name": "Qwen2.5-7B + VASP LoRA",
         "description": "基于 Qwen2.5-7B 微调的 LoRA 模型，通过 RAG 检索增强生成 VASP POSCAR 结构",
         "type": "llm_lora",
-    },
-    {
-        "id": "fake",
-        "name": "Fake POSCAR (demo)",
-        "description": "随机生成合法 POSCAR 格式的占位结构，无需 GPU，用于演示和测试",
-        "type": "demo",
     },
 ]
 
@@ -62,12 +57,6 @@ PRED_MODELS = [
         "name": "Eqv2-Lite Equiformer",
         "description": "等变图神经网络 Equiformer V2 轻量版，预测 ΔG_H 吸附能（eV）",
         "type": "gnn",
-    },
-    {
-        "id": "toy_mlp",
-        "name": "Toy MLP (demo)",
-        "description": "基于组成特征的轻量 MLP 演示模型，无需大型 checkpoint，用于测试",
-        "type": "demo",
     },
 ]
 

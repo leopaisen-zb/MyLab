@@ -1,4 +1,5 @@
 # core/task_orchestrator.py
+import os
 import uuid
 import threading
 from typing import Dict, Any, Optional, List
@@ -67,12 +68,13 @@ class TaskOrchestrator:
         target_dgH: float,
         batch_size: int,
     ) -> List[Dict[str, Any]]:
-        """根据 gen_model_id 选择生成方式，产出与 HEAGenAdapter.generate_batch 相同格式。
+        """根据 MATGEN_DEMO 环境变量选择生成方式，产出与 HEAGenAdapter.generate_batch 相同格式。
 
         逆向设计：仅以 target_dgH 为条件，元素种类与配比由生成器自主产出。
+        gen_model_id 参数保留，供未来真实多模型切换使用。
         """
-        if gen_model_id == "fake":
-            # 强制走本地 fake 生成器，不尝试加载大模型
+        if os.environ.get("MATGEN_DEMO") == "1":
+            # DEMO 模式：走本地 fake 生成器，不加载大模型
             results = []
             for _ in range(batch_size):
                 poscar = generate_fake_poscar(num_atoms=20, target_dgH=target_dgH)
@@ -82,22 +84,23 @@ class TaskOrchestrator:
                     "target_dgH": target_dgH,
                 })
             return results
-        else:
-            # qwen_lora 或其他：走 HEAGenAdapter（内部有 fallback）
-            return self.hea_gen_adapter.generate_batch(
-                target_dgH=target_dgH,
-                batch_size=batch_size,
-            )
+        # 真实模式：走 HEAGenAdapter（qwen_lora 或其他真实模型）
+        return self.hea_gen_adapter.generate_batch(
+            target_dgH=target_dgH,
+            batch_size=batch_size,
+        )
 
     def _predict_with_model(self, pred_model_id: str, poscar_text: str, parsed: dict = None) -> float:
-        """根据 pred_model_id 选择预测方式。"""
-        if pred_model_id == "toy_mlp":
-            # 强制走 toy MLP（EQAdapter.forward），使用真实解析特征
+        """根据 MATGEN_DEMO 环境变量选择预测方式。
+
+        pred_model_id 参数保留，供未来真实多模型切换使用。
+        """
+        if os.environ.get("MATGEN_DEMO") == "1":
+            # DEMO 模式：走 toy MLP（EQAdapter.forward），不加载大型 checkpoint
             features = {**parsed, "parsed": True} if parsed else {"composition": "", "num_sites": 20, "parsed": True}
             return self.eq_adapter.forward(features)
-        else:
-            # equiformer_v2 或其他：走 EQAdapter.predict（内部有 fallback）
-            return self.eq_adapter.predict(poscar_text)
+        # 真实模式：走 EQAdapter.predict（equiformer_v2 或其他真实模型，内部有 fallback）
+        return self.eq_adapter.predict(poscar_text)
 
     def execute_task(self, task_id: str):
         task = self.tasks.get(task_id)
