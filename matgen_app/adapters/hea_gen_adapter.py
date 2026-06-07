@@ -40,12 +40,16 @@ def generate_fake_poscar(elements: List[str], num_atoms: int = 20) -> str:
         lines.append(f"{random.uniform(0, 9):.10f} {random.uniform(0, 9):.10f} {random.uniform(0, 9):.10f}")
     return "\n".join(lines)
 
-def composition_from_poscar(poscar_text: str) -> str:
-    """从 POSCAR 文本提取真实组成字符串（如 'Ir4Pd4Pt4Rh4Ru4'），按首次出现顺序聚合。
+def composition_from_poscar(poscar_text: str, sep: str = "") -> str:
+    """从 POSCAR 文本提取真实组成字符串，按首次出现顺序聚合。
 
-    用作结构记录的 elements 字段，保证与 POSCAR 实际原子数严格一致。
-    解析失败返回 ''（调用方可回退）。
+    sep="" → 'Ir4Pd4Pt4Rh4Ru4'（用作结构记录 elements 字段）；
+    sep=" " → 'Ir4 Pd4 Pt4 Rh4 Ru4'（用作 composition_to_features 输入）。
+    保证与 POSCAR 实际原子数严格一致。解析失败返回 ''（调用方可回退）。
     """
+    def _fmt(counts: Dict[str, int]) -> str:
+        return sep.join(f"{el}{n}" for el, n in counts.items())
+
     # 优先用 pymatgen（更鲁棒，可处理重复元素行）
     if PYMGEN_AVAILABLE:
         try:
@@ -55,7 +59,7 @@ def composition_from_poscar(poscar_text: str) -> str:
                 el = str(site.specie)
                 counts[el] = counts.get(el, 0) + 1
             if counts:
-                return "".join(f"{el}{n}" for el, n in counts.items())
+                return _fmt(counts)
         except Exception:
             pass
     # 回退：手动解析"元素符号行 + 计数行"（标准 POSCAR 格式）
@@ -69,7 +73,7 @@ def composition_from_poscar(poscar_text: str) -> str:
             counts = {}
             for el, n in zip(syms, nums):
                 counts[el] = counts.get(el, 0) + int(n)
-            return "".join(f"{el}{v}" for el, v in counts.items())
+            return _fmt(counts)
     return ""
 
 

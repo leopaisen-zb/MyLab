@@ -5,6 +5,32 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from adapters.eq_adapter import EQAdapter
+from adapters.hea_gen_adapter import generate_fake_poscar
+
+
+class TestPredictFallbackStructureAware:
+    """real Equiformer 失败时, fallback 也必须反映真实结构(不能返回与结构无关的常数)。"""
+
+    def test_fallback_varies_with_structure(self, monkeypatch):
+        # 强制 backend.eq_predict 抛错, 触发 fallback
+        import backend.eq_predict as ep
+        monkeypatch.setattr(ep, "predict", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("forced")))
+
+        adapter = EQAdapter()
+        # 两个组成显著不同的结构
+        p1 = generate_fake_poscar(["Ir", "Pd", "Pt", "Rh", "Ru"], num_atoms=20)
+        p2 = generate_fake_poscar(["Fe", "Co", "Ni"], num_atoms=9)
+        v1 = adapter.predict(p1)
+        v2 = adapter.predict(p2)
+        # fallback 用了真实组成 → 不同结构给出不同预测(而非同一常数)
+        assert v1 != v2
+
+    def test_fallback_returns_float(self, monkeypatch):
+        import backend.eq_predict as ep
+        monkeypatch.setattr(ep, "predict", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("forced")))
+        adapter = EQAdapter()
+        poscar = generate_fake_poscar(["Ir", "Pd", "Pt", "Rh", "Ru"], num_atoms=20)
+        assert isinstance(adapter.predict(poscar), float)
 
 
 class TestEQAdapter:
@@ -60,11 +86,14 @@ class TestEQAdapter:
         for r in results:
             assert -2.0 <= r <= 0.0, f"ΔG_H {r} outside reasonable range"
 
-    def test_predict_alias_for_forward(self):
-        """predict() should be alias for forward()."""
+    def test_predict_accepts_poscar_string(self, monkeypatch):
+        """predict() 收 POSCAR 字符串(当前契约): 真实模型失败时 fallback 返回 float。"""
+        import backend.eq_predict as ep
+        monkeypatch.setattr(ep, "predict", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("forced")))
         adapter = EQAdapter()
-        struct_data = {"parsed": True, "composition": "Ir2Pd2"}
-        assert adapter.predict(struct_data) == adapter.forward(struct_data)
+        poscar = generate_fake_poscar(["Ir", "Pd", "Pt", "Rh", "Ru"], num_atoms=20)
+        result = adapter.predict(poscar)
+        assert isinstance(result, float)
 
     def test_predict_batch(self):
         """predict_batch should return list of predictions."""

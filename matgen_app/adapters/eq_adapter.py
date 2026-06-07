@@ -1,5 +1,6 @@
 # adapters/eq_adapter.py
 import os
+import re
 import sys
 import torch
 from typing import Any, Dict, Optional
@@ -105,7 +106,12 @@ class EQAdapter(BaseAdapter):
             return result["dg_h"]
         except Exception as e:
             print(f"[EQAdapter] backend.eq_predict failed ({e}), falling back to toy model")
-            return self.forward({"composition": "", "num_sites": 20, "parsed": True})
+            # 退化估计也必须反映真实结构：从 POSCAR 提取真实组成喂 toy 模型，
+            # 避免返回与结构无关的常数。
+            from adapters.hea_gen_adapter import composition_from_poscar
+            comp = composition_from_poscar(poscar_text, sep=" ")
+            n_atoms = sum(int(x) for x in re.findall(r"\d+", comp)) if comp else 20
+            return self.forward({"composition": comp, "num_sites": n_atoms or 20, "parsed": True})
 
     def predict_batch(self, structures: list) -> list:
         """
