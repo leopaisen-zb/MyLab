@@ -74,7 +74,7 @@ class TaskOrchestrator:
         gen_model_id 参数保留，供未来真实多模型切换使用。
         """
         if os.environ.get("MATGEN_DEMO") == "1":
-            # DEMO 模式：走本地 fake 生成器，不加载大模型
+            # 轻量模式：本地快速合成，不加载大模型/不依赖语料（测试/无 GPU）
             results = []
             for _ in range(batch_size):
                 poscar = generate_fake_poscar(num_atoms=20, target_dgH=target_dgH)
@@ -84,11 +84,15 @@ class TaskOrchestrator:
                     "target_dgH": target_dgH,
                 })
             return results
-        # 真实模式：走 HEAGenAdapter（qwen_lora 或其他真实模型）
-        return self.hea_gen_adapter.generate_batch(
-            target_dgH=target_dgH,
-            batch_size=batch_size,
-        )
+        if os.environ.get("MATGEN_USE_LLM") == "1":
+            # GPU 服务器：真实 Qwen-7B + LoRA 生成
+            return self.hea_gen_adapter.generate_batch(
+                target_dgH=target_dgH,
+                batch_size=batch_size,
+            )
+        # 默认（本机真实路径）：从真实结构库按目标性质检索（端到端真实模型，Mac 可跑）
+        from backend.structure_library import sample_structures
+        return sample_structures(target_dgH=target_dgH, batch_size=batch_size)
 
     def _predict_with_model(self, pred_model_id: str, poscar_text: str, parsed: dict = None) -> float:
         """根据 MATGEN_DEMO 环境变量选择预测方式。
