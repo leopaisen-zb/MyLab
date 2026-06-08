@@ -78,3 +78,23 @@ MS_1.zip
 
 # === Unrelated tools ===
 everything-claude-code-zh/
+
+# === 论文 / 答辩材料(仅本地保留，不进远程仓库；历史已用 filter-repo 清除) ===
+/MS_1/
+/MS_1 (2)/
+/答辩二改/
+/答辩二改 2/
+/答辩二改_恢复/
+/答辩材料/
+/实验结果/
+/MyLab_new/
+/docs/
+/毕业论文最终版.pdf
+/Eq-Lite-总结汇报.pdf
+/Eq原版消融实验.pdf
+/答辩修改意见.docx
+/答辩修改意见.pdf
+/盲审意见表.docx
+/范文格式.pdf
+/_RECOVER_PNG/
+/.local-untracked-backup-*/
